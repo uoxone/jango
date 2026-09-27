@@ -1,0 +1,22 @@
+#!/bin/sh
+SELF=$(readlink -f "$0")
+BASE=$(dirname "$SELF")
+ENTRY="$BASE/../src/cli.ts"
+RUNTIME=${DINGO_RUNTIME:-}
+
+if [ -z "$RUNTIME" ]; then
+  if command -v bun >/dev/null 2>&1; then
+    RUNTIME=bun
+  else
+    RUNTIME=node
+  fi
+fi
+
+case "$RUNTIME" in
+  bun) exec bun "$ENTRY" "$@" ;;
+  node) exec node "$ENTRY" "$@" ;;
+  *)
+    printf 'Unknown DINGO_RUNTIME: %s\n' "$RUNTIME" >&2
+    exit 1
+    ;;
+esac

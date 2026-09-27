@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Routes — Dingo</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header>
+  <a href="index.html">Dingo</a>
+  <nav>
+    <a href="start.html">Start</a>
+    <a href="routes.html">Routes</a>
+    <a href="test.html">Tests</a>
+  </nav>
+</header>
+<main>
+  <h1>Routes</h1>
+  <p><code>url.ts</code> exports the routes. Until <code>/</code> is defined, Dingo shows its built-in “It works” page. That page is not a file in the project.</p>
+  <pre>const url = {
+  "/": () => "Hello",
+  "/about": () => "&lt;h1&gt;About&lt;/h1&gt;",
+}
+
+export default url</pre>
+  <p>A handler may return a <code>Promise</code>. An HTML string can also be read from a file inside the project. The file is loaded once when the server starts and then served from memory:</p>
+  <pre>const url = {
+  "/": "page.html",
+}
+
+export default url</pre>
+  <p>The file name must end in <code>.html</code> and must stay inside the project directory. An unknown path returns 404. The query string is stripped, so <code>/?x=1</code> is the same route as <code>/</code>.</p>
+</main>
+</body>
+</html>

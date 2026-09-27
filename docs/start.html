@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Start — Dingo</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header>
+  <a href="index.html">Dingo</a>
+  <nav>
+    <a href="start.html">Start</a>
+    <a href="routes.html">Routes</a>
+    <a href="test.html">Tests</a>
+  </nav>
+</header>
+<main>
+  <h1>Start</h1>
+  <p>From the Dingo directory, these two commands create a project and run it.</p>
+  <pre>./bin/dingo create project mehrashop
+./bin/dingo run mehrashop</pre>
+  <p>The project contains <code>settings.ts</code>, <code>url.ts</code>, and a small <code>package.json</code> with <code>"type": "module"</code>. No HTML file is written into the project.</p>
+  <pre>const settings = {
+  host: "127.0.0.1",
+  port: 8000,
+}
+
+export default settings</pre>
+  <p>Force Node with:</p>
+  <pre>DINGO_RUNTIME=node ./bin/dingo run mehrashop</pre>
+  <p>If port 8000 is already taken, the server does not start. Stop the other process, or change <code>port</code> in <code>settings.ts</code>. Restart the server after you edit a file.</p>
+  <p>Dingo listens once per CPU core. Set <code>DINGO_WORKERS=1</code> to use a single listener.</p>
+</main>
+</body>
+</html>

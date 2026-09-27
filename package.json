@@ -1,0 +1,19 @@
+{
+  "name": "dingo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "dingo": "./bin/dingo"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "test": "node --test test/create.test.ts test/server.test.ts test/docs.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.0",
+    "typescript": "^5.9.2"
+  }
+}

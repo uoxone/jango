@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ name }}</title>
+<style>
+  body {
+    margin: 0;
+    background: #f4f7f5;
+    color: #173028;
+    font: 17px/1.55 ui-sans-serif, system-ui, sans-serif;
+  }
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    background: #0c3b2e;
+    color: #fff;
+    padding: 22px 8vw;
+  }
+  header b { font-size: 22px; letter-spacing: 0.04em; }
+  header span { opacity: 0.72; }
+  main { max-width: 720px; margin: 48px auto; padding: 0 24px 64px; }
+  h1 { margin: 0 0 12px; font-size: 34px; line-height: 1.2; }
+  pre {
+    background: #fff;
+    border: 1px solid #d5e0da;
+    border-radius: 10px;
+    padding: 16px 18px;
+    overflow: auto;
+  }
+  code, pre { font-family: ui-monospace, monospace; font-size: 14px; }
+</style>
+</head>
+<body>
+<header>
+  <b>Dingo</b>
+  <span>{{ name }}</span>
+</header>
+<main>
+  <h1>It works.</h1>
+  <p>The install worked successfully. You are seeing this page because <code>/</code> is not defined in <code>url.ts</code>.</p>
+  <pre>const url = {
+  "/": () => "Hello",
+}
+
+export default url</pre>
+  <p>Add that route, then restart the server.</p>
+</main>
+</body>
+</html>

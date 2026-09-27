@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tests — Dingo</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header>
+  <a href="index.html">Dingo</a>
+  <nav>
+    <a href="start.html">Start</a>
+    <a href="routes.html">Routes</a>
+    <a href="test.html">Tests</a>
+  </nav>
+</header>
+<main>
+  <h1>Tests</h1>
+  <p>Tests use <code>node:test</code>, the runner built into Node. No extra test package is required. Bun runs the same files.</p>
+  <pre>npm test
+bun test</pre>
+  <p>The <code>test</code> directory checks project creation, the default page, route functions, HTML files, 500 responses, 404 responses, and routes that try to leave the project.</p>
+  <p>Temporary files live under <code>test/.tmp</code> and are removed after each test. The test server binds to port 0, so it does not collide with a dev server on port 8000.</p>
+</main>
+</body>
+</html>
