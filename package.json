@@ -1,13 +1,18 @@
 {
   "name": "dingo",
   "version": "0.1.0",
-  "private": true,
+  "description": "A small TypeScript web framework for Bun and Node.",
   "type": "module",
   "bin": {
     "dingo": "./bin/dingo"
   },
+  "files": [
+    "bin",
+    "src"
+  ],
   "engines": {
-    "node": ">=22.18"
+    "node": ">=22.18",
+    "bun": ">=1.1.0"
   },
   "scripts": {
     "test": "node --test test/create.test.ts test/server.test.ts test/docs.test.ts"
