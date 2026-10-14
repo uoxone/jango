@@ -17,19 +17,32 @@
 </header>
 <main>
   <h1>Start</h1>
-  <p>With Dingo installed globally, these two commands create a project and run it from any directory.</p>
+  <p>Bun 1.1 or newer is required. Clone the repository, or extract the GitHub ZIP and enter that directory, then link the command:</p>
+  <pre>git clone https://github.com/uoxone/Dingo.git
+cd Dingo
+bun link dingo</pre>
+  <p><code>bun link dingo</code> installs the <code>dingo</code> binary. Open a new terminal. From any directory:</p>
   <pre>dingo create project mehrashop
 dingo run mehrashop</pre>
-  <p>The project contains <code>settings.ts</code>, <code>url.ts</code>, and a small <code>package.json</code> with <code>"type": "module"</code>. No HTML file is written into the project.</p>
+  <p>With no arguments, <code>dingo</code> prints:</p>
+  <pre>Usage:
+  dingo create project &lt;name&gt;
+  dingo run [dir]</pre>
+  <p><code>dingo run</code> serves the current directory. <code>dingo run mehrashop</code> serves that folder.</p>
+  <h2>Project files</h2>
+  <p>The project contains <code>settings.ts</code>, <code>url.ts</code>, and a <code>package.json</code> with <code>"type": "module"</code>. No HTML file is written into the project.</p>
   <pre>const settings = {
   host: "127.0.0.1",
   port: 8000,
 }
 
 export default settings</pre>
-  <p>Force Node with:</p>
-  <pre>DINGO_RUNTIME=node ./bin/dingo run mehrashop</pre>
-  <p>If port 8000 is already taken, the server does not start. Stop the other process, or change <code>port</code> in <code>settings.ts</code>. Restart the server after you edit a file.</p>
+  <p>The server prints <code>Dingo  bun  http://127.0.0.1:8000</code>. Restart it after you edit a file.</p>
+  <h2>Names</h2>
+  <p>A project name starts with a letter and uses only letters, numbers, <code>_</code>, or <code>-</code>. It can be at most 64 characters. Creating the same name again fails with <code>Project already exists</code>.</p>
+  <h2>Port</h2>
+  <p>If port 8000 is already taken, the server does not start. Stop the other process, or change <code>port</code> in <code>settings.ts</code>.</p>
+  <h2>Workers</h2>
   <p>Dingo listens once per CPU core. Set <code>DINGO_WORKERS=1</code> to use a single listener.</p>
 </main>
 </body>

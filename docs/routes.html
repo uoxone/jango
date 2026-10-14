@@ -17,20 +17,28 @@
 </header>
 <main>
   <h1>Routes</h1>
-  <p><code>url.ts</code> exports the routes. Until <code>/</code> is defined, Dingo shows its built-in “It works” page. That page is not a file in the project.</p>
+  <p><code>url.ts</code> default-exports the routes. Every path starts with <code>/</code>. A route is a function or an <code>.html</code> file name.</p>
   <pre>const url = {
   "/": () => "Hello",
   "/about": () => "&lt;h1&gt;About&lt;/h1&gt;",
 }
 
 export default url</pre>
-  <p>A handler may return a <code>Promise</code>. An HTML string can also be read from a file inside the project. The file is loaded once when the server starts and then served from memory:</p>
+  <p>A handler may return a <code>Promise</code>. The response is HTML (<code>text/html; charset=utf-8</code>).</p>
+  <h2>HTML files</h2>
+  <p>An HTML string can also be read from a file inside the project. The file is loaded once when the server starts and then served from memory:</p>
   <pre>const url = {
   "/": "page.html",
 }
 
 export default url</pre>
-  <p>The file name must end in <code>.html</code> and must stay inside the project directory. An unknown path returns 404. The query string is stripped, so <code>/?x=1</code> is the same route as <code>/</code>.</p>
+  <p>The file name must end in <code>.html</code>, must not start with <code>/</code>, and must stay inside the project directory. <code>..</code> is rejected. A missing file fails at startup with <code>Missing page.html</code>.</p>
+  <h2>Default page</h2>
+  <p>Until <code>/</code> is defined, Dingo shows its built-in “It works” page. That page is not a file in the project. It includes the project folder name.</p>
+  <h2>Status</h2>
+  <p>An unknown path returns <code>404</code> and the text <code>Not Found</code>. The query string is stripped, so <code>/?x=1</code> is the same route as <code>/</code>.</p>
+  <p>If a handler throws, or a returned promise rejects, the response is <code>500</code> and the text <code>Internal Server Error</code>.</p>
+  <p>A directory without <code>settings.ts</code> and <code>url.ts</code> is not a Dingo project. <code>settings.ts</code> must default-export <code>{ host, port }</code>.</p>
 </main>
 </body>
 </html>
