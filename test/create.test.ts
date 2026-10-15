@@ -19,7 +19,7 @@ describe("create project", () => {
       assert.match(url, /const url = \{\}/)
       assert.equal(pkg.name, "shop")
       assert.equal(pkg.type, "module")
-      await assert.rejects(access(join(root, "dingo.html")))
+      await assert.rejects(access(join(root, "jango.html")))
     } finally {
       await workspace.remove()
     }

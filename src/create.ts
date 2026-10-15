@@ -26,7 +26,7 @@ export async function createProject(name: string, cwd = process.cwd()) {
   ])
 
   console.log(`Created ${name}`)
-  console.log(`\n  dingo run ${name}`)
+  console.log(`\n  jango run ${name}`)
 }
 
 function packageJson(name: string) {

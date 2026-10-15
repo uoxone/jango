@@ -24,7 +24,7 @@ async function main() {
   }
 
   console.error(`Usage:
-  dingo create project <name>
-  dingo run [dir]`)
+  jango create project <name>
+  jango run [dir]`)
   process.exitCode = 1
 }

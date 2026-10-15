@@ -270,7 +270,7 @@ function bunPath(url: string) {
 
 function workerCount(port: number) {
   if (port === 0) return 1
-  const requested = process.env.DINGO_WORKERS
+  const requested = process.env.JANGO_WORKERS
   if (requested === undefined || requested === "") return availableParallelism()
   const count = Number(requested)
   if (!Number.isInteger(count) || count < 1) return 1
@@ -278,7 +278,7 @@ function workerCount(port: number) {
 }
 
 function started(runtime: "bun" | "node", host: string, port: number) {
-  console.log(`Dingo  ${runtime}  http://${host}:${port}`)
+  console.log(`Jango  ${runtime}  http://${host}:${port}`)
 }
 
 function busyPort(error: unknown, port: number) {

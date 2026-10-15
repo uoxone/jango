@@ -28,7 +28,7 @@ export async function loadProject(dir: string) {
 }
 
 async function welcome(name: string): Promise<Route> {
-  const page = await readFile(new URL("./templates/dingo.html", import.meta.url), "utf8")
+  const page = await readFile(new URL("./templates/jango.html", import.meta.url), "utf8")
   return { kind: "static", body: page.replaceAll("{{ name }}", name) }
 }
 
@@ -62,7 +62,7 @@ async function readDefault<T>(root: string, file: string): Promise<T> {
     return mod.default as T
   } catch (error) {
     if (isCode(error, "ERR_MODULE_NOT_FOUND")) {
-      throw new Error(`Not a Dingo project: missing ${file}`)
+      throw new Error(`Not a Jango project: missing ${file}`)
     }
     throw error
   }

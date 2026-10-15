@@ -86,9 +86,9 @@ export default url
     }
   })
 
-  it("rejects a project that is not a Dingo project", async () => {
+  it("rejects a project that is not a Jango project", async () => {
     const app = await project()
-    await assert.rejects(loadProject(join(app.dir, "missing")), /Not a Dingo project/)
+    await assert.rejects(loadProject(join(app.dir, "missing")), /Not a Jango project/)
     await app.remove()
   })
 

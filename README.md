@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🐕 Dingo
+# Jango
 
 **A small TypeScript web framework for Bun**
 
@@ -10,19 +10,37 @@
 
 ---
 
+## 🌿 Install the command
+
+```bash
+bun install -g @uoxone/jango
+```
+
+or
+
+```bash
+npm install -g @uoxone/jango
+```
+
 ## 🌿 Link the command
 
 ```bash
-git clone https://github.com/uoxone/Dingo.git
-cd Dingo
-bun link dingo
+git clone https://github.com/uoxone/Jango.git
+cd Jango
+bun link jango
+```
+
+From this directory, remove that link:
+
+```bash
+bun unlink
 ```
 
 ## ✨ Create and run
 
 ```bash
-dingo create project mehrashop
-dingo run mehrashop
+jango create project mehrashop
+jango run mehrashop
 ```
 
 The server is at `http://127.0.0.1:8000`.
