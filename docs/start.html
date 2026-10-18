@@ -17,13 +17,21 @@
 </header>
 <main>
   <h1>Start</h1>
-  <p>Bun 1.1 or newer is required. Clone the repository, or extract the GitHub ZIP and enter that directory, then link the command:</p>
+  <h2>Install the command</h2>
+  <pre>bun install -g @uoxone/jango
+# or
+npm install -g @uoxone/jango</pre>
+  <h2>Link the command</h2>
+  <p>If you download the repository from GitHub, use these commands instead:</p>
   <pre>git clone https://github.com/uoxone/Jango.git
 cd Jango
 bun link jango</pre>
-  <p><code>bun link jango</code> installs the <code>jango</code> binary. Open a new terminal. From any directory:</p>
+  <p>From this directory, remove that link:</p>
+  <pre>bun unlink</pre>
+  <h2>Create and run</h2>
   <pre>jango create project mehrashop
 jango run mehrashop</pre>
+  <p>The server is at <code>http://127.0.0.1:8000</code>.</p>
   <p>With no arguments, <code>jango</code> prints:</p>
   <pre>Usage:
   jango create project &lt;name&gt;
