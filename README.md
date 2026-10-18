@@ -25,8 +25,10 @@ If you download the repository from GitHub, use these commands instead:
 ```bash
 git clone https://github.com/uoxone/Jango.git
 cd Jango
-bun link jango
+bun link
 ```
+
+`bun link` takes no package name. It registers this folder and installs the `jango` command.
 
 From this directory, remove that link:
 

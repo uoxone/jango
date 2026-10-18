@@ -25,7 +25,8 @@ npm install -g @uoxone/jango</pre>
   <p>If you download the repository from GitHub, use these commands instead:</p>
   <pre>git clone https://github.com/uoxone/Jango.git
 cd Jango
-bun link jango</pre>
+bun link</pre>
+  <p><code>bun link</code> takes no package name. It registers this folder and installs the <code>jango</code> command.</p>
   <p>From this directory, remove that link:</p>
   <pre>bun unlink</pre>
   <h2>Create and run</h2>
@@ -35,7 +36,9 @@ jango run mehrashop</pre>
   <p>With no arguments, <code>jango</code> prints:</p>
   <pre>Usage:
   jango create project &lt;name&gt;
-  jango run [dir]</pre>
+  jango run [dir]
+  jango -v</pre>
+  <p><code>jango -v</code> prints the version. <code>jango --version</code> does the same.</p>
   <p><code>jango run</code> serves the current directory. <code>jango run mehrashop</code> serves that folder.</p>
   <h2>Project files</h2>
   <p>The project contains <code>settings.ts</code>, <code>url.ts</code>, and a <code>package.json</code> with <code>"type": "module"</code>. No HTML file is written into the project.</p>

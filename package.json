@@ -15,7 +15,7 @@
     "bun": ">=1.1.0"
   },
   "scripts": {
-    "test": "node --test test/create.test.ts test/server.test.ts test/docs.test.ts"
+    "test": "node --test test/create.test.ts test/server.test.ts test/cli.test.ts test/docs.test.ts"
   },
   "devDependencies": {
     "@types/node": "^24.6.0",
