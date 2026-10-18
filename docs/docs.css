@@ -72,3 +72,14 @@ pre {
   border-radius: 10px;
   padding: 14px 16px;
 }
+
+footer {
+  max-width: 740px;
+  margin: 0 auto 48px;
+  padding: 16px 24px 0;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 15px;
+}
+
+footer p { margin: 0; }

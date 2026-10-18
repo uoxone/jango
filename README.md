@@ -4,7 +4,7 @@
 
 **A small TypeScript web framework for Bun**
 
-[📚 Docs](docs/index.html) · [🌿 Start](docs/start.html) · [🧭 Routes](docs/routes.html) · [🧪 Tests](docs/test.html)
+[📚 Docs](https://uoxone.github.io/jango/) · [🌿 Start](https://uoxone.github.io/jango/start.html) · [🧭 Routes](https://uoxone.github.io/jango/routes.html) · [🧪 Tests](https://uoxone.github.io/jango/test.html)
 
 </div>
 
@@ -14,15 +14,13 @@
 
 ```bash
 bun install -g @uoxone/jango
-```
-
-or
-
-```bash
+# or
 npm install -g @uoxone/jango
 ```
 
 ## 🌿 Link the command
+
+If you download the repository from GitHub, use these commands instead:
 
 ```bash
 git clone https://github.com/uoxone/Jango.git
@@ -47,7 +45,7 @@ The server is at `http://127.0.0.1:8000`.
 
 ## 📚 Docs
 
-The full guide is in [`docs`](docs/index.html).
+The full guide is at [uoxone.github.io/jango](https://uoxone.github.io/jango/).
 
 ## 🚀 Git commit guidelines
 

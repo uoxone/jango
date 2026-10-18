@@ -1,6 +1,6 @@
 {
   "name": "@uoxone/jango",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A small TypeScript web framework for Bun and Node.",
   "type": "module",
   "bin": {
