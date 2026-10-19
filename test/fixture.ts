@@ -28,5 +28,5 @@ export async function project(name = "shop") {
 export async function listen(dir: string): Promise<Running> {
   const loaded = await loadProject(dir)
   loaded.settings.port = 0
-  return serve(loaded.settings, loaded.routes)
+  return serve(loaded)
 }

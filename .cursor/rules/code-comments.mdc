@@ -1,0 +1,30 @@
+---
+description: English in-code documentation required on every code change
+alwaysApply: true
+---
+
+# Code comments
+
+When you add or change code, document that code in the same file. Write the comment in English.
+
+Put one line directly above every function, type, constant, and top-level block. Copy this shape: seven slashes, one space, one sentence, one space, seven slashes.
+
+```ts
+/////// Say what this code does. ///////
+```
+
+Start the sentence with a verb. Mention safety or speed only when that is the reason the code exists.
+
+Shell scripts use the same sentence with seven hash marks on each side:
+
+```sh
+####### Uses bun when it is installed, otherwise node, then runs the cli. #######
+```
+
+HTML uses one comment:
+
+```html
+<!-- Default page shown until / is defined in url.ts. -->
+```
+
+Leave these comments in place when you edit the code around them. Update the sentence when the behavior changes.

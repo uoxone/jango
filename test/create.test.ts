@@ -16,10 +16,13 @@ describe("create project", () => {
       const pkg = JSON.parse(await readFile(join(root, "package.json"), "utf8"))
 
       assert.match(settings, /port: 8000/)
+      assert.match(settings, /staticRoot: "static"/)
+      assert.match(settings, /staticUrl: "\/static\/"/)
       assert.match(url, /const url = \{\}/)
       assert.equal(pkg.name, "shop")
       assert.equal(pkg.type, "module")
       await access(join(root, "templates"))
+      await access(join(root, "static"))
       await assert.rejects(access(join(root, "jango.html")))
       await assert.rejects(access(join(root, "page.html")))
     } finally {

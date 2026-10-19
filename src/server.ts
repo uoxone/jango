@@ -2,8 +2,9 @@ import { createServer, type ServerResponse } from "node:http"
 import { availableParallelism } from "node:os"
 import { Worker } from "node:worker_threads"
 import { loadProject } from "./load.ts"
-import type { Handler, Routes, Settings } from "./types.ts"
+import type { Handler, Project, Routes, Settings, StaticFiles } from "./types.ts"
 
+/////// Fixed responses are built once so a request does not allocate them again ///////
 const HTML = "text/html; charset=utf-8"
 const TEXT = "text/plain; charset=utf-8"
 const NOT_FOUND = Buffer.from("Not Found")
@@ -11,11 +12,13 @@ const SERVER_ERROR = Buffer.from("Internal Server Error")
 const NOT_FOUND_HEADERS = { "content-type": TEXT, "content-length": NOT_FOUND.length }
 const SERVER_ERROR_HEADERS = { "content-type": TEXT, "content-length": SERVER_ERROR.length }
 
+/////// A ready page or file: headers and body in memory ///////
 type StaticHit = {
   headers: { "content-type": string; "content-length": number }
   body: Buffer
 }
 
+/////// The Bun server shape, without depending on Bun's own types ///////
 type BunServer = {
   port: number
   stop(closeActiveConnections?: boolean): void
@@ -32,22 +35,25 @@ type BunRuntime = {
   }): BunServer
 }
 
+/////// The running server address and its close function ///////
 export type Running = {
   url: string
   close(): Promise<void>
 }
 
+/////// reusePort shares the port across processes. quiet hides the startup line ///////
 type ServeOptions = {
   reusePort?: boolean
   quiet?: boolean
 }
 
+/////// Loads the project and listens once per CPU core ///////
 export async function serveProject(dir: string): Promise<Running> {
   const project = await loadProject(dir)
   const count = workerCount(project.settings.port)
-  if (count === 1) return serve(project.settings, project.routes)
+  if (count === 1) return serve(project)
 
-  const running = await serve(project.settings, project.routes, { reusePort: true })
+  const running = await serve(project, { reusePort: true })
   const children = Array.from({ length: count - 1 }, () =>
     new Worker(new URL("./worker.ts", import.meta.url), { workerData: { dir } }),
   )
@@ -64,15 +70,17 @@ export async function serveProject(dir: string): Promise<Running> {
   }
 }
 
-export async function serve(settings: Settings, routes: Routes, options: ServeOptions = {}): Promise<Running> {
-  const compiled = compile(routes)
+/////// Bun serves prepared routes. Node serves a memory map ///////
+export async function serve(project: Project, options: ServeOptions = {}): Promise<Running> {
+  const compiled = compile(project.routes, project.files)
   const bun = (globalThis as { Bun?: BunRuntime }).Bun
 
-  if (bun) return serveBun(bun, settings, compiled, options)
-  return serveNode(settings, compiled, options)
+  if (bun) return serveBun(bun, project.settings, compiled, options)
+  return serveNode(project.settings, compiled, options)
 }
 
-function compile(routes: Routes) {
+/////// Builds responses before the first request. A url.ts route wins over a static file ///////
+function compile(routes: Routes, files: StaticFiles) {
   const bunRoutes: Record<string, Response> = {}
   const nodeStatic = new Map<string, StaticHit>()
   const live = new Map<string, Handler>()
@@ -103,9 +111,28 @@ function compile(routes: Routes) {
     })
   }
 
+  for (const [path, file] of files) {
+    if (live.has(path) || bodies.has(path) || nodeStatic.has(path)) continue
+    if (onBun) {
+      bunRoutes[path] = new Response(new Uint8Array(file.body), {
+        headers: {
+          "content-type": file.type,
+          "content-length": String(file.body.length),
+        },
+      })
+      continue
+    }
+
+    nodeStatic.set(path, {
+      headers: { "content-type": file.type, "content-length": file.body.length },
+      body: file.body,
+    })
+  }
+
   return { bunRoutes, nodeStatic, live, bodies }
 }
 
+/////// Bun answers static routes without entering JavaScript ///////
 function serveBun(
   bun: BunRuntime,
   settings: Settings,
@@ -146,6 +173,7 @@ function serveBun(
   }
 }
 
+/////// Each request is one Map lookup. The disk is not read ///////
 async function serveNode(
   settings: Settings,
   compiled: ReturnType<typeof compile>,
@@ -219,6 +247,7 @@ async function serveNode(
   }
 }
 
+/////// Returns a static route from memory and runs a function route ///////
 function dispatch(compiled: ReturnType<typeof compile>, path: string) {
   const body = compiled.bodies.get(path)
   if (body) {
@@ -247,6 +276,7 @@ function dispatch(compiled: ReturnType<typeof compile>, path: string) {
   )
 }
 
+/////// Sends an html body with its exact length ///////
 function send(res: ServerResponse, status: number, body: string) {
   res.writeHead(status, {
     "content-type": status === 200 ? HTML : TEXT,
@@ -255,19 +285,30 @@ function send(res: ServerResponse, status: number, body: string) {
   res.end(body)
 }
 
+/////// Returns the Node request path without the query string ///////
 function nodePath(url: string) {
-  const query = url.indexOf("?")
-  return query === -1 ? url : url.slice(0, query)
+  return requestPath(url)
 }
 
+/////// Takes the path out of Bun's full URL ///////
 function bunPath(url: string) {
   const scheme = url.indexOf("://")
   const slash = scheme === -1 ? 0 : url.indexOf("/", scheme + 3)
-  const path = slash === -1 ? "/" : url.slice(slash)
-  const query = path.indexOf("?")
-  return query === -1 ? path : path.slice(0, query)
+  return requestPath(slash === -1 ? "/" : url.slice(slash))
 }
 
+/////// Drops the query string and decodes percent-encoded characters ///////
+function requestPath(url: string) {
+  const query = url.indexOf("?")
+  const path = query === -1 ? url : url.slice(0, query)
+  try {
+    return decodeURIComponent(path)
+  } catch {
+    return path
+  }
+}
+
+/////// Port 0 stays on one listener so tests do not collide ///////
 function workerCount(port: number) {
   if (port === 0) return 1
   const requested = process.env.JANGO_WORKERS
@@ -277,10 +318,12 @@ function workerCount(port: number) {
   return count
 }
 
+/////// One startup line: runtime and address ///////
 function started(runtime: "bun" | "node", host: string, port: number) {
   console.log(`Jango  ${runtime}  http://${host}:${port}`)
 }
 
+/////// Turns a busy port into a message that points at settings.ts ///////
 function busyPort(error: unknown, port: number) {
   const message = error instanceof Error ? error.message : String(error)
   if (message.includes("EADDRINUSE") || /port \d+ in use/i.test(message)) {

@@ -1,7 +1,7 @@
 {
   "name": "@uoxone/jango",
-  "version": "0.1.1",
-  "description": "A small TypeScript web framework for Bun and Node.",
+  "version": "0.1.2",
+  "description": "Inspired by Django and implemented in TypeScript.",
   "type": "module",
   "bin": {
     "jango": "bin/jango"

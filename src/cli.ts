@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises"
 import { createProject } from "./create.ts"
 import { serveProject } from "./server.ts"
 
+/////// Arguments after the command name ///////
 const args = process.argv.slice(2)
 
 try {
@@ -11,6 +12,7 @@ try {
   process.exit(1)
 }
 
+/////// Runs create, run, and version. An unknown command prints the usage ///////
 async function main() {
   const [command, noun, name] = args
 
@@ -36,6 +38,7 @@ async function main() {
   process.exitCode = 1
 }
 
+/////// Reads the version from this package's package.json ///////
 async function version() {
   const { version } = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"))
   return version

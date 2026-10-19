@@ -1,3 +1,4 @@
+<!-- Default page shown until / is defined in url.ts -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -53,6 +54,9 @@
 }
 
 export default url</pre>
+
+  <h2>Static</h2>
+  <p><code>staticRoot</code> is the folder. <code>staticUrl</code> is the address. With the defaults, <code>static/css/app.css</code> is served at <code>/static/css/app.css</code>. Restart the server after you change a file.</p>
 
   <h2>Complete</h2>
   <p><code>url.ts</code> default-exports the routes. Every path starts with <code>/</code>. A string is a template name, and that file must live in <code>templates/</code>. The name <code>page.html</code> loads <code>templates/page.html</code>. A file next to <code>url.ts</code> is not a template. Jango reads the file once at startup and then serves it from memory.</p>

@@ -2,7 +2,7 @@
 
 # Jango
 
-**A small TypeScript web framework for Bun**
+**Inspired by Django and implemented in TypeScript**
 
 [📚 Docs](https://uoxone.github.io/jango/) · [🌿 Start](https://uoxone.github.io/jango/start.html) · [🧭 Routes](https://uoxone.github.io/jango/routes.html) · [🧪 Tests](https://uoxone.github.io/jango/test.html)
 

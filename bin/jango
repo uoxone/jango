@@ -1,4 +1,5 @@
 #!/bin/sh
+####### Uses bun when it is installed, otherwise node, then runs the cli #######
 SELF=$(readlink -f "$0")
 BASE=$(dirname "$SELF")
 ENTRY="$BASE/../src/cli.ts"

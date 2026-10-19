@@ -33,12 +33,17 @@ export default url</pre>
 
 export default url</pre>
   <p>A name may include a subdirectory, such as <code>blog/post.html</code>. It must end in <code>.html</code> and must not start with <code>/</code>. <code>..</code> is rejected. A file outside <code>templates/</code> is not a template. A missing file fails at startup with <code>Missing template: page.html</code>.</p>
+  <h2>Static files</h2>
+  <p><code>staticRoot</code> is the folder, relative to the project. <code>staticUrl</code> is the address, and it must start and end with <code>/</code>. With the defaults, <code>static/css/app.css</code> is available at <code>/static/css/app.css</code>:</p>
+  <pre>&lt;link rel="stylesheet" href="/static/css/app.css"&gt;</pre>
+  <p>Jango reads each file once at startup and then serves it from memory. Restart the server after you change a file. The response uses the type for that extension, such as <code>text/css</code> or <code>image/png</code>. An unknown extension is <code>application/octet-stream</code>.</p>
+  <p>A missing file or a directory returns <code>404</code>. A symbolic link is ignored. <code>..</code> is rejected in both settings. When <code>url.ts</code> uses the same path, that route wins. A missing <code>staticRoot</code> directory still starts. If that path is a file, startup fails with <code>staticRoot must be a directory</code>.</p>
   <h2>Default page</h2>
   <p>Until <code>/</code> is defined, Jango shows its built-in “It works” page. That page is not a file in the project. It includes the project folder name and a link to <a href="https://uoxone.github.io/jango/">the documentation</a>.</p>
   <h2>Status</h2>
   <p>An unknown path returns <code>404</code> and the text <code>Not Found</code>. The query string is stripped, so <code>/?x=1</code> is the same route as <code>/</code>.</p>
   <p>If a handler throws, or a returned promise rejects, the response is <code>500</code> and the text <code>Internal Server Error</code>.</p>
-  <p>A directory without <code>settings.ts</code> and <code>url.ts</code> is not a Jango project. <code>settings.ts</code> must default-export <code>{ host, port }</code>.</p>
+  <p>A directory without <code>settings.ts</code> and <code>url.ts</code> is not a Jango project. <code>settings.ts</code> must default-export <code>{ host, port, staticRoot, staticUrl }</code>.</p>
 </main>
 <footer>
   <p>Questions, chat, or support: join <a href="https://t.me/jango_framework">t.me/jango_framework</a>.</p>
