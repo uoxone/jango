@@ -40,19 +40,20 @@ async function bindRoute(root: string, route: RouteTarget): Promise<Route> {
   try {
     return { kind: "static", body: await readFile(file, "utf8") }
   } catch (error) {
-    if (isCode(error, "ENOENT")) throw new Error(`Missing ${route}`)
+    if (isCode(error, "ENOENT")) throw new Error(`Missing template: ${route}`)
     throw error
   }
 }
 
-function templatePath(root: string, target: string) {
-  if (!target.endsWith(".html") || target.startsWith("/") || target.includes("..") || target.includes("\0")) {
-    throw new Error(`Invalid template: ${target}`)
+function templatePath(root: string, name: string) {
+  if (!name.endsWith(".html") || name.startsWith("/") || name.includes("..") || name.includes("\\") || name.includes("\0")) {
+    throw new Error(`Invalid template: ${name}`)
   }
 
-  const file = resolve(root, target)
-  const base = root.endsWith(sep) ? root : root + sep
-  if (!file.startsWith(base)) throw new Error(`Invalid template: ${target}`)
+  const dir = resolve(root, "templates")
+  const file = resolve(dir, name)
+  const base = dir.endsWith(sep) ? dir : dir + sep
+  if (!file.startsWith(base)) throw new Error(`Invalid template: ${name}`)
   return file
 }
 

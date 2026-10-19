@@ -26,15 +26,15 @@
 export default url</pre>
   <p>A handler may return a <code>Promise</code>. The response is HTML (<code>text/html; charset=utf-8</code>).</p>
   <h2>HTML files</h2>
-  <p>An HTML string can also be read from a file inside the project. The file is loaded once when the server starts and then served from memory:</p>
+  <p>An HTML route names a file inside <code>templates/</code>. The name <code>page.html</code> loads <code>templates/page.html</code>. The file is read once when the server starts and then served from memory:</p>
   <pre>const url = {
   "/": "page.html",
 }
 
 export default url</pre>
-  <p>The file name must end in <code>.html</code>, must not start with <code>/</code>, and must stay inside the project directory. <code>..</code> is rejected. A missing file fails at startup with <code>Missing page.html</code>.</p>
+  <p>A name may include a subdirectory, such as <code>blog/post.html</code>. It must end in <code>.html</code> and must not start with <code>/</code>. <code>..</code> is rejected. A file outside <code>templates/</code> is not a template. A missing file fails at startup with <code>Missing template: page.html</code>.</p>
   <h2>Default page</h2>
-  <p>Until <code>/</code> is defined, Jango shows its built-in “It works” page. That page is not a file in the project. It includes the project folder name.</p>
+  <p>Until <code>/</code> is defined, Jango shows its built-in “It works” page. That page is not a file in the project. It includes the project folder name and a link to <a href="https://uoxone.github.io/jango/">the documentation</a>.</p>
   <h2>Status</h2>
   <p>An unknown path returns <code>404</code> and the text <code>Not Found</code>. The query string is stripped, so <code>/?x=1</code> is the same route as <code>/</code>.</p>
   <p>If a handler throws, or a returned promise rejects, the response is <code>500</code> and the text <code>Internal Server Error</code>.</p>

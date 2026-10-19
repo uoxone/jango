@@ -16,6 +16,7 @@ describe("server", () => {
       assert.equal(res.headers.get("content-type"), "text/html; charset=utf-8")
       assert.match(body, /It works/)
       assert.match(body, /mehrashop/)
+      assert.match(body, /https:\/\/uoxone\.github\.io\/jango\//)
     } finally {
       await running.close()
       await app.remove()
@@ -41,9 +42,9 @@ describe("server", () => {
     }
   })
 
-  it("serves an html file from the project", async () => {
+  it("serves an html file from templates", async () => {
     const app = await project()
-    await writeFile(join(app.dir, "page.html"), "<p>from file</p>\n")
+    await writeFile(join(app.dir, "templates", "page.html"), "<p>from file</p>\n")
     await writeFile(
       join(app.dir, "url.ts"),
       `const url = {\n  "/": "page.html",\n}\n\nexport default url\n`,
@@ -92,7 +93,18 @@ export default url
     await app.remove()
   })
 
-  it("rejects routes outside the project", async () => {
+  it("does not load an html file outside templates", async () => {
+    const app = await project()
+    await writeFile(join(app.dir, "page.html"), "<p>root</p>\n")
+    await writeFile(
+      join(app.dir, "url.ts"),
+      `const url = {\n  "/": "page.html",\n}\n\nexport default url\n`,
+    )
+    await assert.rejects(loadProject(app.dir), /Missing template: page.html/)
+    await app.remove()
+  })
+
+  it("rejects routes outside templates", async () => {
     const app = await project()
     await writeFile(
       join(app.dir, "url.ts"),

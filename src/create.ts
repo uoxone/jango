@@ -23,6 +23,7 @@ export async function createProject(name: string, cwd = process.cwd()) {
     writeFile(resolve(root, "package.json"), packageJson(name), "utf8"),
     writeFile(resolve(root, "settings.ts"), settingsSource(), "utf8"),
     writeFile(resolve(root, "url.ts"), urlSource(), "utf8"),
+    mkdir(resolve(root, "templates")),
   ])
 
   console.log(`Created ${name}`)

@@ -21,8 +21,11 @@
   }
   header b { font-size: 22px; letter-spacing: 0.04em; }
   header span { opacity: 0.72; }
+  header a { margin-left: auto; color: #fff; }
   main { max-width: 720px; margin: 48px auto; padding: 0 24px 64px; }
   h1 { margin: 0 0 12px; font-size: 34px; line-height: 1.2; }
+  h2 { margin: 32px 0 8px; font-size: 22px; }
+  a { color: #0c3b2e; }
   pre {
     background: #fff;
     border: 1px solid #d5e0da;
@@ -37,16 +40,31 @@
 <header>
   <b>Jango</b>
   <span>{{ name }}</span>
+  <a href="https://uoxone.github.io/jango/">Docs</a>
 </header>
 <main>
   <h1>It works.</h1>
-  <p>The install worked successfully. You are seeing this page because <code>/</code> is not defined in <code>url.ts</code>.</p>
+  <p>The server is running. You see this page because <code>/</code> is not defined in <code>url.ts</code>.</p>
+
+  <h2>Simple</h2>
+  <p>Put the page in <code>templates/page.html</code>. Point <code>/</code> at that file, then restart the server.</p>
+  <pre>const url = {
+  "/": "page.html",
+}
+
+export default url</pre>
+
+  <h2>Complete</h2>
+  <p><code>url.ts</code> default-exports the routes. Every path starts with <code>/</code>. A string is a template name, and that file must live in <code>templates/</code>. The name <code>page.html</code> loads <code>templates/page.html</code>. A file next to <code>url.ts</code> is not a template. Jango reads the file once at startup and then serves it from memory.</p>
+  <p>A name may include a subdirectory, such as <code>blog/post.html</code>. It must end in <code>.html</code> and must not start with <code>/</code>. <code>..</code> is rejected. A missing file stops startup with <code>Missing template: page.html</code>.</p>
+  <p>A route can also be a function. It may return a string or a <code>Promise</code>. The response is HTML.</p>
   <pre>const url = {
   "/": () => "Hello",
 }
 
 export default url</pre>
-  <p>Add that route, then restart the server.</p>
+  <p>Restart the server after you change a file. A path that is not listed returns <code>404</code> and the text <code>Not Found</code>. If a handler throws, the response is <code>500</code>.</p>
+  <p>Documentation: <a href="https://uoxone.github.io/jango/">uoxone.github.io/jango</a>.</p>
 </main>
 </body>
 </html>
