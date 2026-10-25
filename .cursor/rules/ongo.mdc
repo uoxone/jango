@@ -45,6 +45,21 @@ pub fn urlpatterns() -> Router {
 - `ongo build` must produce one executable. That file runs on a server with no Cargo and no rustc. It may link the system libc.
 - The `ongo` command on disk is `~/.cargo/bin/ongo`. Editing `core/src/main.rs` does nothing until `cargo install --path .`.
 
+## Tests
+
+- Every new feature and every edit that changes behavior needs a test in the same change.
+- Put the test in `core/tests/`. The matching source file includes it:
+
+```rust
+#[cfg(test)]
+#[path = "../tests/http.rs"]
+mod tests;
+```
+
+- Cover the new path and one case that should fail or stay unchanged.
+- Run `cargo test` and leave it passing before the change is done.
+- Comments, docs, and rule files do not need a test.
+
 ## Scope
 
 - Do not add a database, admin, template engine, middleware, chunked bodies, or IPv6 unless the user asks.

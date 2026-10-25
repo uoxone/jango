@@ -12,21 +12,11 @@
 
 ## 🌿 Install the command
 
-From this folder:
-
 ```bash
-cargo install --path .
+cargo install ongo
 ```
 
-## 🌿 From a fresh clone
-
-```bash
-git clone https://github.com/uoxone/ongo.git
-cd ongo
-cargo install --path .
-```
-
-`cargo install --path .` builds this folder and puts the `ongo` command on your PATH.
+`cargo install ongo` puts the `ongo` command on your PATH.
 
 ## ✨ Create and run
 
