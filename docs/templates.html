@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
-<title>Templates · Jango</title>
-<meta name="description" content="Jango templates use {{ name }}, {% block %}, and {% extends %}. Values are escaped. The page shell is shared.">
+<title>Templates · Ongo</title>
+<meta name="description" content="OnGo templates use {{ name }}, {% block %}, and {% extends %}. Values are escaped. The page shell is shared.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <a class="skip" href="#content">Skip to content</a>
 <div class="frame">
 <header class="top">
-  <a class="brand" href="index.html">Jango</a>
+  <a class="brand" href="index.html">OnGo</a>
   <nav>
     <a href="start.html">Start</a>
     <a href="routes.html">Routes</a>
@@ -49,7 +49,7 @@ pub fn about(req: &amp;Request) -&gt; Response {
 &lt;/main&gt;</code></pre>
   <pre><code>{% extends "page.html" %}
 
-{% block title %}nava · Jango{% endblock %}
+{% block title %}nava · OnGo{% endblock %}
 
 {% block content %}
 &lt;h1&gt;nava&lt;/h1&gt;
@@ -57,7 +57,7 @@ pub fn about(req: &amp;Request) -&gt; Response {
 {% endblock %}</code></pre>
   <p><code>{% extends %}</code> is the first tag. Blank lines and <code>{# comments #}</code> may sit above it. Single quotes work too: <code>{% extends 'page.html' %}</code>.</p>
   <p>A child replaces blocks by name. The deepest child wins. Words in the child that sit outside a block are left out, so the shell stays in charge of the page. <code>{% endblock %}</code> may repeat the block name, or leave it out.</p>
-  <p><code>build.rs</code> reads <code>templates/*.html</code> and embeds them. After a change, the next <code>jango run</code> picks the new files up. The server you ship already contains the pages.</p>
+  <p><code>build.rs</code> reads <code>templates/*.html</code> and embeds them. After a change, the next <code>ongo run</code> picks the new files up. The server you ship already contains the pages.</p>
 
   <h2>When a template is unhappy</h2>
   <p>A problem becomes a 500 response with a short reason. The usual ones:</p>

@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
-<title>Start · Jango</title>
-<meta name="description" content="Install the jango command, create a project named nava, and open it at 127.0.0.1:8000.">
+<title>Start · OnGo</title>
+<meta name="description" content="Install the OnGo command, create a project named nava, and open it at 127.0.0.1:8000.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <a class="skip" href="#content">Skip to content</a>
 <div class="frame">
 <header class="top">
-  <a class="brand" href="index.html">Jango</a>
+  <a class="brand" href="index.html">OnGo</a>
   <nav>
     <a href="start.html" aria-current="page">Start</a>
     <a href="routes.html">Routes</a>
@@ -29,9 +29,9 @@
   <p class="lede">Two commands create the app. A third one puts it in the browser.</p>
 
   <h2>Install the command</h2>
-  <p>From the Jango repository:</p>
+  <p>From the OnGo repository:</p>
   <pre><code>cargo install --path .</code></pre>
-  <p>That builds this folder and places <code>jango</code> on your PATH, usually at <code>~/.cargo/bin/jango</code>.</p>
+  <p>That builds this folder and places <code>ongo</code> on your PATH, usually at <code>~/.cargo/bin/ongo</code>.</p>
 
   <h2>From a fresh clone</h2>
   <pre><code>git clone https://github.com/uoxone/jango.git
@@ -39,12 +39,12 @@ cd jango
 cargo install --path .</code></pre>
 
   <h2>Create and run</h2>
-  <pre><code>jango create project nava
-jango run nava</code></pre>
-  <p>The server is at <a href="http://127.0.0.1:8000">http://127.0.0.1:8000</a>. <code>jango run</code> compiles a development build, so you can keep editing views.</p>
+  <pre><code>ongo create project nava
+ongo run nava</code></pre>
+  <p>The server is at <a href="http://127.0.0.1:8000">http://127.0.0.1:8000</a>. <code>ongo run</code> compiles a development build, so you can keep editing views.</p>
   <p>Inside the project folder, the name is optional:</p>
   <pre><code>cd nava
-jango run</code></pre>
+ongo run</code></pre>
   <p>A name starts with a letter. After that, letters, digits, <code>_</code>, and <code>-</code> are welcome. <code>nava</code>, <code>my_nava</code>, and <code>my-nava</code> are all fine.</p>
 
   <h2>What you get</h2>
@@ -63,17 +63,17 @@ jango run</code></pre>
   <h2>The address</h2>
   <p><code>src/settings.rs</code> holds the listen address:</p>
   <pre><code>pub const ADDR: &amp;str = "127.0.0.1:8000";</code></pre>
-  <p><code>127.0.0.1</code> is this machine. When you run the binary on a server, change it to <code>0.0.0.0:8000</code>. Jango listens on IPv4.</p>
+  <p><code>127.0.0.1</code> is this machine. When you run the binary on a server, change it to <code>0.0.0.0:8000</code>. Ongo listens on IPv4.</p>
 
   <h2>Useful commands</h2>
   <table>
     <tr><th>Command</th><th>What it does</th></tr>
-    <tr><td><code>jango create project &lt;name&gt;</code></td><td>Writes a new project in <code>./&lt;name&gt;</code></td></tr>
-    <tr><td><code>jango run [name]</code></td><td>Compiles and serves a development build</td></tr>
-    <tr><td><code>jango run [name] --release</code></td><td>Serves the optimized build</td></tr>
-    <tr><td><code>jango build [name]</code></td><td>Writes the file you upload</td></tr>
-    <tr><td><code>jango --help</code></td><td>Shows the commands</td></tr>
-    <tr><td><code>jango --version</code></td><td>Prints the version</td></tr>
+    <tr><td><code>ongo create project &lt;name&gt;</code></td><td>Writes a new project in <code>./&lt;name&gt;</code></td></tr>
+    <tr><td><code>ongo run [name]</code></td><td>Compiles and serves a development build</td></tr>
+    <tr><td><code>ongo run [name] --release</code></td><td>Serves the optimized build</td></tr>
+    <tr><td><code>ongo build [name]</code></td><td>Writes the file you upload</td></tr>
+    <tr><td><code>ongo --help</code></td><td>Shows the commands</td></tr>
+    <tr><td><code>ongo --version</code></td><td>Prints the version</td></tr>
   </table>
   <p>Prefer to skip the install while you are in this repository? This works too:</p>
   <pre><code>cargo run -- create project nava

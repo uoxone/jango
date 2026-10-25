@@ -1,4 +1,4 @@
-//! `jango` — create a project and run it.
+//! `ongo` — create a project and run it.
 
 #![forbid(unsafe_code)]
 
@@ -22,7 +22,7 @@ fn main() {
     let code = match cli() {
         Ok(()) => 0,
         Err(err) => {
-            eprintln!("jango: {err}");
+            eprintln!("ongo: {err}");
             1
         }
     };
@@ -31,9 +31,9 @@ fn main() {
 
 // -----------------------------------------------
 // Commands
-//   jango create project <name>
-//   jango run [name] [--release]
-//   jango build [name]
+//   ongo create project <name>
+//   ongo run [name] [--release]
+//   ongo build [name]
 // -----------------------------------------------
 
 fn cli() -> Result<(), String> {
@@ -45,7 +45,7 @@ fn cli() -> Result<(), String> {
             Ok(())
         }
         Some("-V") | Some("--version") | Some("version") => {
-            println!("jango {}", env!("CARGO_PKG_VERSION"));
+            println!("ongo {}", env!("CARGO_PKG_VERSION"));
             Ok(())
         }
         Some("create") => create(&args),
@@ -61,20 +61,20 @@ fn print_help() {
 
 fn help_text() -> &'static str {
     "\
-jango — a small Django-style web framework
+ongo — a small Django-style web framework
 
 Usage:
-  jango create project <name>   create ./<name>
-  jango run [name] [--release]  run the project (dev build by default)
-  jango build [name]            release binary you can upload and run
+  ongo create project <name>   create ./<name>
+  ongo run [name] [--release]  run the project (dev build by default)
+  ongo build [name]            release binary you can upload and run
 
-The file from `jango build` is a normal program.
+The file from `ongo build` is a normal program.
 The server does not need cargo or rustc.
 
 Examples:
-  jango create project nava
-  jango run nava
-  jango build nava"
+  ongo create project nava
+  ongo run nava
+  ongo build nava"
 }
 
 fn take_flag(args: &mut Vec<String>, flag: &str) -> bool {
@@ -89,18 +89,18 @@ fn take_flag(args: &mut Vec<String>, flag: &str) -> bool {
 // -----------------------------------------------
 // create project
 // Writes a tiny app that depends only on this
-// jango crate. templates/ is the first page.
+// ongo crate. templates/ is the first page.
 // -----------------------------------------------
 
 fn create(args: &[String]) -> Result<(), String> {
     let Some("project") = args.get(1).map(String::as_str) else {
-        return Err("usage: jango create project <name>".into());
+        return Err("usage: ongo create project <name>".into());
     };
     let Some(name) = args.get(2).map(String::as_str) else {
-        return Err("usage: jango create project <name>".into());
+        return Err("usage: ongo create project <name>".into());
     };
     if args.len() != 3 {
-        return Err("usage: jango create project <name>".into());
+        return Err("usage: ongo create project <name>".into());
     }
     if !valid_name(name) {
         return Err("project name must look like `nava` or `my_nava`".into());
@@ -110,8 +110,8 @@ fn create(args: &[String]) -> Result<(), String> {
     if dir.exists() {
         return Err(format!("`{name}` already exists"));
     }
-    let lib = jango_lib_path()?;
-    let cargo = fill(CARGO_TMPL, name).replace("__JANGO__", &lib);
+    let lib = ongo_lib_path()?;
+    let cargo = fill(CARGO_TMPL, name).replace("__ONGO__", &lib);
 
     fs::create_dir_all(dir.join("src")).map_err(|err| err.to_string())?;
     fs::create_dir_all(dir.join("templates")).map_err(|err| err.to_string())?;
@@ -131,7 +131,7 @@ fn create(args: &[String]) -> Result<(), String> {
     println!("  {name}/src/views.rs");
     println!("  {name}/templates/home.html");
     println!();
-    println!("next:  jango run {name}");
+    println!("next:  ongo run {name}");
     Ok(())
 }
 
@@ -148,12 +148,12 @@ fn valid_name(name: &str) -> bool {
     chars.all(|ch| ch.is_ascii_alphanumeric() || ch == '_' || ch == '-')
 }
 
-fn jango_lib_path() -> Result<String, String> {
+fn ongo_lib_path() -> Result<String, String> {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let path = path.canonicalize().unwrap_or(path);
     let text = path.to_string_lossy().replace('\\', "/");
     if text.contains('"') {
-        return Err("jango path cannot contain a quote".into());
+        return Err("ongo path cannot contain a quote".into());
     }
     Ok(text)
 }
@@ -172,7 +172,7 @@ fn write(path: &Path, contents: &str) -> Result<(), String> {
 fn run_project(args: &[String], release: bool) -> Result<(), String> {
     let dir = project_dir(args.get(1).map(String::as_str))?;
     if args.len() > 2 {
-        return Err("usage: jango run [name] [--release]".into());
+        return Err("usage: ongo run [name] [--release]".into());
     }
     let mut cmd = Command::new("cargo");
     cmd.arg("run").current_dir(&dir);
@@ -185,7 +185,7 @@ fn run_project(args: &[String], release: bool) -> Result<(), String> {
 fn build_project(args: &[String]) -> Result<(), String> {
     let dir = project_dir(args.get(1).map(String::as_str))?;
     if args.len() > 2 {
-        return Err("usage: jango build [name]".into());
+        return Err("usage: ongo build [name]".into());
     }
     let mut cmd = Command::new("cargo");
     cmd.arg("build").arg("--release").current_dir(&dir);

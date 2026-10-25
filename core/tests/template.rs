@@ -179,7 +179,7 @@ fn project_templates_render() {
     let page = body(&home);
     assert_eq!(home.status, 200, "{page}");
     assert!(page.starts_with("<!DOCTYPE html>"));
-    assert!(page.contains("<title>__NAME__ · Jango</title>"));
+    assert!(page.contains("<title>__NAME__ · Ongo</title>"));
     assert!(page.contains("<h1>__NAME__</h1>"));
     assert!(page.contains("127.0.0.1:8000"));
     assert!(page.contains("--paper: #f6f1e8;"));
@@ -187,7 +187,7 @@ fn project_templates_render() {
     assert!(!page.contains("{% block"));
 
     let about = body(&render(&req, "about.html", &[]));
-    assert!(about.contains("<title>About · __NAME__ · Jango</title>"));
+    assert!(about.contains("<title>About · __NAME__ · Ongo</title>"));
     assert!(about.contains("<code>/about</code>"));
     assert!(about.contains("← Home"));
 }

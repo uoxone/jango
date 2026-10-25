@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
-<title>Routes · Jango</title>
+<title>Routes · OnGo</title>
 <meta name="description" content="Map each path to a view in urls.rs. Paths are exact. A segment written as &lt;id&gt; captures one piece.">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -13,7 +13,7 @@
 <a class="skip" href="#content">Skip to content</a>
 <div class="frame">
 <header class="top">
-  <a class="brand" href="index.html">Jango</a>
+  <a class="brand" href="index.html">OnGo</a>
   <nav>
     <a href="start.html">Start</a>
     <a href="routes.html" aria-current="page">Routes</a>
@@ -30,7 +30,7 @@
 
   <h2>The map</h2>
   <pre><code>use crate::views;
-use jango::prelude::*;
+use ongo::prelude::*;
 
 pub fn urlpatterns() -> Router {
     routes! {
@@ -42,7 +42,7 @@ pub fn urlpatterns() -> Router {
   <p>A trailing comma is fine. An empty <code>routes! {}</code> is a router with no pages, so every path answers 404.</p>
   <p>The new project wires this table in <code>src/main.rs</code>:</p>
   <pre><code>let app = urls::urlpatterns().templates(templates::load);
-jango::run(settings::ADDR, app).expect("jango");</code></pre>
+ongo::run(settings::ADDR, app).expect("ongo");</code></pre>
 
   <h2>Exact paths</h2>
   <p><code>/about</code> and <code>/about/</code> are two different doors. <code>/About</code> is a third. The query string is not part of the path, so <code>/song/7?x=1</code> still matches <code>/song/&lt;id&gt;</code>.</p>

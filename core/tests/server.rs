@@ -95,14 +95,14 @@ fn writes_status_length_and_location() {
     let n = write_header(&mut buf, &text, text.body.len(), true).unwrap();
     assert_eq!(
         std::str::from_utf8(&buf[..n]).unwrap(),
-        "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 2\r\nConnection: keep-alive\r\nServer: jango\r\n\r\n"
+        "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 2\r\nConnection: keep-alive\r\nServer: ongo\r\n\r\n"
     );
 
     let jump = Response::redirect("/next");
     let n = write_header(&mut buf, &jump, 0, false).unwrap();
     assert_eq!(
         std::str::from_utf8(&buf[..n]).unwrap(),
-        "HTTP/1.1 302 Found\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 0\r\nConnection: close\r\nServer: jango\r\nLocation: /next\r\n\r\n"
+        "HTTP/1.1 302 Found\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 0\r\nConnection: close\r\nServer: ongo\r\nLocation: /next\r\n\r\n"
     );
     assert!(write_header(&mut [0u8; 8], &text, 2, true).is_none());
 

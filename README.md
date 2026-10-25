@@ -1,10 +1,10 @@
 <div align="center">
 
-# Jango
+# OnGo
 
 **Inspired by Django and implemented in Rust**
 
-[📚 Docs](https://uoxone.github.io/jango/) · [🌿 Start](https://uoxone.github.io/jango/start.html) · [🧭 Routes](https://uoxone.github.io/jango/routes.html) · [🧪 Tests](https://uoxone.github.io/jango/test.html)
+[📚 Docs](https://uoxone.github.io/ongo/) · [🌿 Start](https://uoxone.github.io/ongo/start.html) · [🧭 Routes](https://uoxone.github.io/ongo/routes.html) · [🧪 Tests](https://uoxone.github.io/ongo/test.html)
 
 </div>
 
@@ -21,25 +21,25 @@ cargo install --path .
 ## 🌿 From a fresh clone
 
 ```bash
-git clone https://github.com/uoxone/jango.git
-cd jango
+git clone https://github.com/uoxone/ongo.git
+cd ongo
 cargo install --path .
 ```
 
-`cargo install --path .` builds this folder and puts the `jango` command on your PATH.
+`cargo install --path .` builds this folder and puts the `ongo` command on your PATH.
 
 ## ✨ Create and run
 
 ```bash
-jango create project nava
-jango run nava
+ongo create project nava
+ongo run nava
 ```
 
 The server is at `http://127.0.0.1:8000`.
 
 ## 📚 Docs
 
-The full guide is at [uoxone.github.io/jango](https://uoxone.github.io/jango/).
+The full guide is at [uoxone.github.io/ongo](https://uoxone.github.io/ongo/).
 
 ## 🚀 Git commit guidelines
 

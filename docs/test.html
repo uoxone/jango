@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
-<title>Tests · Jango</title>
-<meta name="description" content="Run cargo test in the Jango repository. The tests live in core/tests, one file for each part of the framework.">
+<title>Tests · OnGo</title>
+<meta name="description" content="Run cargo test in the OnGo repository. The tests live in core/tests, one file for each part of the framework.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <a class="skip" href="#content">Skip to content</a>
 <div class="frame">
 <header class="top">
-  <a class="brand" href="index.html">Jango</a>
+  <a class="brand" href="index.html">OnGo</a>
   <nav>
     <a href="start.html">Start</a>
     <a href="routes.html">Routes</a>
@@ -26,14 +26,14 @@
 <main id="content">
   <p class="kicker">Tests</p>
   <h1>See that it holds</h1>
-  <p class="lede">The tests keep the framework honest. Run them in the Jango repository, before you trust a change.</p>
+  <p class="lede">The tests keep the framework honest. Run them in the OnGo repository, before you trust a change.</p>
 
   <h2>Run them</h2>
   <pre><code>cargo test</code></pre>
-  <p>A good run ends in <code>ok</code>. You get the framework tests, the <code>jango</code> command tests, and the doc test.</p>
+  <p>A good run ends in <code>ok</code>. You get the framework tests, the <code>ongo</code> command tests, and the doc test.</p>
   <p>A smaller slice:</p>
   <pre><code>cargo test --lib           # framework
-cargo test --bin jango     # create, run, build
+cargo test --bin ongo     # create, run, build
 cargo test template        # tests with template in the name
 cargo test -- --list       # names only</code></pre>
 
@@ -59,7 +59,7 @@ cargo test -- --list       # names only</code></pre>
     <tr><td><code>template.rs</code></td><td><code>{{ }}</code>, blocks, <code>extends</code>, and the sample pages</td></tr>
     <tr><td><code>server.rs</code></td><td>Response headers, and a real server on <code>127.0.0.1</code></td></tr>
     <tr><td><code>sys.rs</code></td><td>The listen socket and the epoll layout</td></tr>
-    <tr><td><code>cli.rs</code></td><td><code>jango create project</code> and the command checks</td></tr>
+    <tr><td><code>cli.rs</code></td><td><code>ongo create project</code> and the command checks</td></tr>
   </table>
   <p>One server test listens on <code>127.0.0.1</code>. The rest stay inside the process. Run <code>cargo test</code> here, in the framework repository.</p>
 

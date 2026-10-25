@@ -1,5 +1,5 @@
 use crate::settings;
-use jango::prelude::*;
+use ongo::prelude::*;
 
 // -----------------------------------------------
 // Views

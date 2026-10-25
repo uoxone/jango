@@ -1,11 +1,11 @@
 ---
-description: Rules for the Jango framework. Follow these on every change.
+description: Rules for the OnGo framework. Follow these on every change.
 alwaysApply: true
 ---
 
-# Jango
+# OnGo
 
-Jango is a small Django-style web framework written in Rust. Stage 1 is projects, URLs, views, and the HTTP server.
+OnGo is a small Django-style web framework written in Rust. Stage 1 is projects, URLs, views, and the HTTP server.
 
 ## Code
 
@@ -35,15 +35,15 @@ pub fn urlpatterns() -> Router {
 ## Dependencies
 
 - Never add a crate from outside this repository. No crates.io packages.
-- Use only the Rust standard library and code written inside Jango.
+- Use only the Rust standard library and code written inside Ongo.
 - Do not install Axum, Tokio, Hyper, Serde, or any other library to compare, test, or “help”.
 
 ## Speed and shipping
 
 - Keep the server faster than Axum by staying small: no Tower, no Hyper, no middleware stack.
-- `jango create project <name>`, `jango run <name>`, and `jango build <name>` are the commands.
-- `jango build` must produce one executable. That file runs on a server with no Cargo and no rustc. It may link the system libc.
-- The `jango` command on disk is `~/.cargo/bin/jango`. Editing `core/src/main.rs` does nothing until `cargo install --path .`.
+- `ongo create project <name>`, `ongo run <name>`, and `ongo build <name>` are the commands.
+- `ongo build` must produce one executable. That file runs on a server with no Cargo and no rustc. It may link the system libc.
+- The `ongo` command on disk is `~/.cargo/bin/ongo`. Editing `core/src/main.rs` does nothing until `cargo install --path .`.
 
 ## Scope
 

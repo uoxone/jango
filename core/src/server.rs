@@ -46,7 +46,7 @@ pub fn run(addr: &str, router: Router) -> io::Result<()> {
         let alive_tx = alive_tx.clone();
         let router = Arc::clone(&router);
         thread::Builder::new()
-            .name(format!("jango-{id}"))
+            .name(format!("ongo-{id}"))
             .spawn(move || {
                 let _stay = alive_tx;
                 worker(addr, &router, ready_tx);
@@ -68,7 +68,7 @@ pub fn run(addr: &str, router: Router) -> io::Result<()> {
         return Err(failure.unwrap_or_else(|| io::Error::other("could not bind")));
     }
 
-    println!("jango  http://{addr}  ({up} workers)");
+    println!("ongo  http://{addr}  ({up} workers)");
     let _ = alive_rx.recv();
     Ok(())
 }
@@ -82,7 +82,7 @@ fn resolve(addr: &str) -> io::Result<SocketAddrV4> {
         }
     }
     let message = if saw_v6 {
-        "jango listens on IPv4; use an address such as 127.0.0.1:8000"
+        "ongo listens on IPv4; use an address such as 127.0.0.1:8000"
     } else {
         "could not resolve the listen address"
     };
@@ -119,7 +119,7 @@ fn worker(addr: SocketAddrV4, router: &Router, ready: mpsc::Sender<io::Result<()
         let ready_count = match sys::epoll_wait(ep, &mut events) {
             Ok(count) => count,
             Err(err) => {
-                eprintln!("jango: {err}");
+                eprintln!("ongo: {err}");
                 break;
             }
         };
@@ -162,7 +162,7 @@ fn accept_all(listen: i32, ep: i32, table: &mut Table) {
             Err(err) if err.kind() == ErrorKind::WouldBlock => break,
             Err(err) if err.kind() == ErrorKind::Interrupted => continue,
             Err(err) => {
-                eprintln!("jango: accept: {err}");
+                eprintln!("ongo: accept: {err}");
                 thread::sleep(Duration::from_millis(1));
                 break;
             }
@@ -276,9 +276,9 @@ fn write_header(buf: &mut [u8], response: &Response, len: usize, keep: bool) -> 
     out.bytes(b"\r\nContent-Length: ")?;
     out.usize(len)?;
     out.bytes(if keep {
-        b"\r\nConnection: keep-alive\r\nServer: jango\r\n"
+        b"\r\nConnection: keep-alive\r\nServer: ongo\r\n"
     } else {
-        b"\r\nConnection: close\r\nServer: jango\r\n"
+        b"\r\nConnection: close\r\nServer: ongo\r\n"
     })?;
     if let Some(location) = &response.location {
         out.bytes(b"Location: ")?;

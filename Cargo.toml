@@ -1,28 +1,31 @@
 # -----------------------------------------------
-# Jango
+# Ongo
 # No crates from outside this project. The standard
 # library is the only dependency.
 # -----------------------------------------------
 
 [package]
-name = "jango"
+name = "ongo"
 version = "0.1.0"
 edition = "2021"
 description = "A small, fast, Django-style web framework"
-publish = false
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/uoxone/ongo"
+readme = "README.md"
+homepage = "https://uoxone.github.io/ongo/"
 
 # -----------------------------------------------
 # Layout
-# core/src is the framework and the jango command.
+# core/src is the framework and the ongo command.
 # core/templates is the blueprint for a new project.
 # -----------------------------------------------
 
 [lib]
-name = "jango"
+name = "ongo"
 path = "core/src/lib.rs"
 
 [[bin]]
-name = "jango"
+name = "ongo"
 path = "core/src/main.rs"
 
 # Release builds one optimized binary. Copy that file

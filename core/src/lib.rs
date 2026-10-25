@@ -1,4 +1,4 @@
-//! Jango is a small Django-style web framework.
+//! Ongo is a small Django-style web framework.
 //!
 //! A view is a function. Paths live in one router.
 //! Templates use `{{ name }}`, `{% block %}`, and `{% extends %}`.
@@ -39,7 +39,7 @@ pub mod prelude {
 /// Build a [`Router`] from `"path" => view` pairs.
 ///
 /// ```
-/// use jango::prelude::*;
+/// use ongo::prelude::*;
 ///
 /// fn home(_req: &Request) -> Response {
 ///     Response::text("hello")

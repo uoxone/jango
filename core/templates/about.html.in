@@ -1,6 +1,6 @@
 {% extends "page.html" %}
 
-{% block title %}About · __NAME__ · Jango{% endblock %}
+{% block title %}About · __NAME__ · OnGo{% endblock %}
 
 {% block content %}
 <h1>About</h1>

@@ -13,5 +13,5 @@ mod templates {
 // -----------------------------------------------
 fn main() {
     let app = urls::urlpatterns().templates(templates::load);
-    jango::run(settings::ADDR, app).expect("jango");
+    ongo::run(settings::ADDR, app).expect("ongo");
 }

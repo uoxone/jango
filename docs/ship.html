@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
-<title>Ship · Jango</title>
-<meta name="description" content="jango build writes one executable. Copy that file to a server and run it. Cargo stays on your machine.">
+<title>Ship · OnGo</title>
+<meta name="description" content="OnGo build writes one executable. Copy that file to a server and run it. Cargo stays on your machine.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <a class="skip" href="#content">Skip to content</a>
 <div class="frame">
 <header class="top">
-  <a class="brand" href="index.html">Jango</a>
+  <a class="brand" href="index.html">OnGo</a>
   <nav>
     <a href="start.html">Start</a>
     <a href="routes.html">Routes</a>
@@ -29,7 +29,7 @@
   <p class="lede">Your machine compiles. The server only runs the file.</p>
 
   <h2>Build it</h2>
-  <pre><code>jango build nava</code></pre>
+  <pre><code>ongo build nava</code></pre>
   <p>The file is here:</p>
   <pre><code>nava/target/release/nava</code></pre>
   <p>Copy it to the server and run it:</p>
@@ -42,7 +42,7 @@
   <p><code>127.0.0.1</code> answers only the machine it is running on. <code>0.0.0.0</code> answers the network. Use an IPv4 address such as <code>127.0.0.1:8000</code> or <code>0.0.0.0:8000</code>.</p>
 
   <h2>How it listens</h2>
-  <p>Jango speaks HTTP itself: <code>epoll</code>, one thread per core, and <code>SO_REUSEPORT</code>. A small response walks a short path.</p>
+  <p>OnGo speaks HTTP itself: <code>epoll</code>, one thread per core, and <code>SO_REUSEPORT</code>. A small response walks a short path.</p>
   <p>On one machine, a small release build did about 400,000 requests a second with 8 keep-alive connections, and about 975,000 when the requests were sent in a batch.</p>
   <div class="note">
     <p>Views share the thread that holds the connection. A slow view holds that thread. Keep the work small, and the server stays quick.</p>

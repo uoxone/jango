@@ -16,11 +16,11 @@ fn names_flags_and_package_files() {
     assert!(!take_flag(&mut args, "--release"));
     assert_eq!(fill("hello __NAME__", "nava"), "hello nava");
     let help = help_text();
-    assert!(help.contains("jango create project <name>"));
-    assert!(help.contains("jango run [name]"));
-    assert!(help.contains("jango build [name]"));
+    assert!(help.contains("ongo create project <name>"));
+    assert!(help.contains("ongo run [name]"));
+    assert!(help.contains("ongo build [name]"));
 
-    let dir = std::env::temp_dir().join(format!("jango-pkg-{}", process::id()));
+    let dir = std::env::temp_dir().join(format!("ongo-pkg-{}", process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let cargo = dir.join("Cargo.toml");
@@ -59,8 +59,8 @@ fn create_rejects_a_bad_command() {
 }
 
 #[test]
-fn create_writes_urls_and_depends_only_on_jango() {
-    let root = std::env::temp_dir().join(format!("jango-cli-{}", process::id()));
+fn create_writes_urls_and_depends_only_on_ongo() {
+    let root = std::env::temp_dir().join(format!("ongo-cli-{}", process::id()));
     let _ = fs::remove_dir_all(&root);
     fs::create_dir_all(&root).unwrap();
     let saved = env::current_dir().unwrap();
@@ -91,7 +91,7 @@ fn create_writes_urls_and_depends_only_on_jango() {
     assert!(home.contains("<h1>nava</h1>"));
     assert!(!home.contains("__NAME__"));
     assert!(about.contains("{{ request.path }}"));
-    assert!(about.contains("About · nava · Jango"));
+    assert!(about.contains("About · nava · Ongo"));
     assert!(settings.contains("127.0.0.1:8000"));
     assert!(fs::read_to_string(root.join("nava/.gitignore"))
         .unwrap()
@@ -100,7 +100,7 @@ fn create_writes_urls_and_depends_only_on_jango() {
         .unwrap()
         .contains("templates"));
     assert!(cargo.contains("name = \"nava\""));
-    assert!(cargo.contains("jango = { path ="));
-    assert!(!cargo.contains("__JANGO__"));
+    assert!(cargo.contains("ongo = { path ="));
+    assert!(!cargo.contains("__ONGO__"));
     let _ = fs::remove_dir_all(&root);
 }
