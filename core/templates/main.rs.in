@@ -2,11 +2,16 @@ mod settings;
 mod urls;
 mod views;
 
+mod templates {
+    include!(concat!(env!("OUT_DIR"), "/templates.rs"));
+}
+
 // -----------------------------------------------
 // Start
 // settings::ADDR is the listen address.
 // urls::urlpatterns() is the route table.
 // -----------------------------------------------
 fn main() {
-    jango::run(settings::ADDR, urls::urlpatterns()).expect("jango");
+    let app = urls::urlpatterns().templates(templates::load);
+    jango::run(settings::ADDR, app).expect("jango");
 }

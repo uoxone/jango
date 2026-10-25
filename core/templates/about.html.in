@@ -1,4 +1,9 @@
-<p class="kicker"><a href="/">__NAME__</a></p>
+{% extends "page.html" %}
+
+{% block title %}About · __NAME__ · Jango{% endblock %}
+
+{% block content %}
 <h1>About</h1>
-<p class="lead">You are on <code>{{path}}</code>.</p>
+<p class="lead">You are on <code>{{ request.path }}</code>.</p>
 <p class="back"><a href="/">← Home</a></p>
+{% endblock %}

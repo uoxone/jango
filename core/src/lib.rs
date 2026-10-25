@@ -1,11 +1,12 @@
 //! Jango is a small Django-style web framework.
 //!
 //! A view is a function. Paths live in one router.
+//! Templates use `{{ name }}`, `{% block %}`, and `{% extends %}`.
 //! [`run`](crate::run) starts the server.
 
 // -----------------------------------------------
 // Public API
-// Stage 1 is requests, responses, URL patterns,
+// Requests, responses, URL patterns, templates,
 // and the development server.
 // -----------------------------------------------
 
@@ -14,14 +15,18 @@ mod parse;
 mod router;
 mod server;
 mod sys;
+mod template;
 
 pub use http::{Method, Request, Response};
 pub use router::Router;
 pub use server::run;
 
+#[doc(hidden)]
+pub use template::render as __render;
+
 /// Names you want in `urls.rs` and `views.rs`.
 pub mod prelude {
-    pub use crate::{routes, Method, Request, Response, Router};
+    pub use crate::{render, routes, Method, Request, Response, Router};
 }
 
 // -----------------------------------------------

@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 use std::process::{self, Command};
 
 const CARGO_TMPL: &str = include_str!("../templates/Cargo.toml.in");
+const BUILD_TMPL: &str = include_str!("../templates/build.rs.in");
 const MAIN_TMPL: &str = include_str!("../templates/main.rs.in");
 const SETTINGS_TMPL: &str = include_str!("../templates/settings.rs.in");
 const URLS_TMPL: &str = include_str!("../templates/urls.rs.in");
@@ -115,6 +116,7 @@ fn create(args: &[String]) -> Result<(), String> {
     fs::create_dir_all(dir.join("src")).map_err(|err| err.to_string())?;
     fs::create_dir_all(dir.join("templates")).map_err(|err| err.to_string())?;
     write(&dir.join("Cargo.toml"), &cargo)?;
+    write(&dir.join("build.rs"), BUILD_TMPL)?;
     write(&dir.join("src/main.rs"), MAIN_TMPL)?;
     write(&dir.join("src/settings.rs"), SETTINGS_TMPL)?;
     write(&dir.join("src/urls.rs"), URLS_TMPL)?;
@@ -259,9 +261,14 @@ mod tests {
         assert!(urls.contains("routes!"));
         assert!(urls.contains("views::home"));
         assert!(main_rs.contains("mod views;"));
-        assert!(views.contains("templates/home.html"));
-        assert!(views.contains("render(\"nava\""));
+        assert!(main_rs.contains("templates::load"));
+        assert!(views.contains("render!(req, \"home.html\""));
+        assert!(!views.contains("include_str!"));
+        assert!(home.contains("{% extends \"page.html\" %}"));
         assert!(home.contains("<h1>nava</h1>"));
+        assert!(fs::read_to_string(root.join("nava/build.rs"))
+            .unwrap()
+            .contains("templates"));
         assert!(cargo.contains("name = \"nava\""));
         assert!(cargo.contains("jango = { path ="));
         let _ = fs::remove_dir_all(&root);

@@ -55,11 +55,13 @@ pub fn urlpatterns() -> Router {
 }
 ```
 
-`src/views.rs` is just functions. Request in, response out.
+`src/views.rs` is just functions. Request in, response out. HTML lives in `templates/`.
 
 ```rust
-pub fn home(_req: &Request) -> Response {
-    Response::html("<h1>nava</h1>")
+pub fn home(req: &Request) -> Response {
+    render!(req, "home.html", {
+        "addr" => settings::ADDR,
+    })
 }
 
 pub fn song(req: &Request) -> Response {
@@ -67,10 +69,13 @@ pub fn song(req: &Request) -> Response {
 }
 ```
 
+`{{ addr }}` and `{{ request.path }}` are escaped. `{% extends "page.html" %}` and `{% block content %}` share the page shell.
+
 Paths are exact, so `/about` and `/about/` are two different doors. `<id>` catches one piece of the path, like `/song/12`.
 
 Handy helpers:
 
+- `render!(req, "home.html")`
 - `Response::html`, `text`, `json`, `status`, `redirect`
 - `req.method()`, `req.query("q")`, `req.body_str()`, `req.param("id")`
 
@@ -117,5 +122,6 @@ Already here, and happy about it:
 - 🧭 exact paths and `/song/<id>`
 - 📬 `GET` `POST` `PUT` `PATCH` `DELETE` `HEAD` `OPTIONS`
 - 🔗 `Content-Length` bodies and keep-alive
+- 📄 `templates/` with `{{ name }}`, `{% block %}`, and `{% extends %}`
 
-Saved for a later stage: HTML templates, a database, admin, middleware, chunked bodies, and IPv6.
+Saved for a later stage: a database, admin, middleware, chunked bodies, and IPv6.

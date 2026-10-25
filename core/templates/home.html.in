@@ -1,7 +1,12 @@
+{% extends "page.html" %}
+
+{% block title %}__NAME__ · Jango{% endblock %}
+
+{% block content %}
 <p class="kicker">
   <span class="dot" aria-hidden="true"></span>
   <span class="label">Listening</span>
-  <code class="addr">{{addr}}</code>
+  <code class="addr">{{ addr }}</code>
 </p>
 <h1>__NAME__</h1>
 <p class="lead">The server is up. Edit this page in <code>templates/home.html</code>.</p>
@@ -22,3 +27,4 @@
 <footer>
   <p>Paths are exact, so <code>/about</code> and <code>/about/</code> are different pages.</p>
 </footer>
+{% endblock %}

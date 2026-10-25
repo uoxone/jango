@@ -1,0 +1,49 @@
+// -----------------------------------------------
+// Templates
+// Embeds templates/*.html into the binary.
+// The server does not need these files on disk.
+// -----------------------------------------------
+
+use std::fs;
+use std::io;
+use std::path::Path;
+
+fn main() {
+    println!("cargo:rerun-if-changed=templates");
+    let out_dir = std::env::var("OUT_DIR").expect("OUT_DIR");
+    let mut code =
+        String::from("pub fn load(name: &str) -> Option<&'static str> {\n    match name {\n");
+    embed(Path::new("templates"), "", &mut code).expect("read templates");
+    code.push_str("        _ => None,\n    }\n}\n");
+    let dest = Path::new(&out_dir).join("templates.rs");
+    fs::write(&dest, code).unwrap_or_else(|err| panic!("write {}: {err}", dest.display()));
+}
+
+fn embed(dir: &Path, prefix: &str, code: &mut String) -> io::Result<()> {
+    let mut entries: Vec<_> = fs::read_dir(dir)?.collect::<Result<_, _>>()?;
+    entries.sort_by_key(|entry| entry.file_name());
+    for entry in entries {
+        let path = entry.path();
+        let file_name = entry.file_name();
+        let name = file_name.to_string_lossy();
+        if name.starts_with('.') {
+            continue;
+        }
+        if path.is_dir() {
+            println!("cargo:rerun-if-changed={}", path.display());
+            embed(&path, &format!("{prefix}{name}/"), code)?;
+            continue;
+        }
+        if path.extension().and_then(|ext| ext.to_str()) != Some("html") {
+            continue;
+        }
+        println!("cargo:rerun-if-changed={}", path.display());
+        let rel = format!("{prefix}{name}");
+        let abs = fs::canonicalize(&path)?;
+        let abs = abs.to_string_lossy().replace('\\', "/");
+        code.push_str(&format!(
+            "        {rel:?} => Some(include_str!({abs:?})),\n"
+        ));
+    }
+    Ok(())
+}

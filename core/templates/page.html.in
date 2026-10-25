@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
-<title>{{title}}</title>
+<title>{% block title %}{% endblock %}</title>
 <!--
   paper  calm background
   ink    readable text
@@ -92,7 +92,36 @@
   .wrap {
     width: min(38rem, 100%);
     margin: auto;
-    padding: 4.5rem 1.5rem;
+    padding: 3.5rem 1.5rem 4.5rem;
+  }
+
+  .mast { margin: 0 0 2.4rem; }
+
+  .mark {
+    display: inline-block;
+    padding-bottom: 0.28rem;
+    color: var(--ink);
+    font-family: "Iowan Old Style", Palatino, "Palatino Linotype", "Liberation Serif", "Noto Serif", Georgia, serif;
+    font-size: clamp(3.5rem, 11vw, 5.75rem);
+    font-weight: 500;
+    letter-spacing: -0.045em;
+    line-height: 0.88;
+    text-decoration: none;
+    background-image: linear-gradient(var(--clay), var(--clay));
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 100% 0.14rem;
+  }
+
+  .mark:hover { color: var(--clay); }
+
+  .tag {
+    margin: 0.7rem 0 0;
+    color: var(--clay);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
   }
 
   .kicker {
@@ -138,10 +167,10 @@
   h1 {
     margin: 0;
     font-family: "Iowan Old Style", Palatino, "Palatino Linotype", "Liberation Serif", "Noto Serif", Georgia, serif;
-    font-size: clamp(3.25rem, 9vw, 5.25rem);
+    font-size: clamp(2rem, 5vw, 2.75rem);
     font-weight: 500;
-    letter-spacing: -0.035em;
-    line-height: 0.95;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
     overflow-wrap: anywhere;
   }
 
@@ -221,8 +250,14 @@
 </style>
 </head>
 <body>
-<main class="wrap">
-{{body}}
+<div class="wrap">
+<header class="mast">
+  <a class="mark" href="/">Jango</a>
+  <p class="tag">Web framework</p>
+</header>
+<main>
+{% block content %}{% endblock %}
 </main>
+</div>
 </body>
 </html>

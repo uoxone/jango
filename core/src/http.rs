@@ -74,6 +74,7 @@ pub struct Request<'a> {
     pub(crate) body: &'a [u8],
     pub(crate) params: [(&'a str, &'a str); 8],
     pub(crate) nparams: u8,
+    pub(crate) templates: Option<fn(&str) -> Option<&'static str>>,
 }
 
 impl<'a> Request<'a> {
@@ -92,6 +93,7 @@ impl<'a> Request<'a> {
             body,
             params: [("", ""); 8],
             nparams: 0,
+            templates: None,
         }
     }
 

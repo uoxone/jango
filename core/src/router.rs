@@ -23,6 +23,7 @@ pub struct Router {
     map: StaticMap,
     patterns: Vec<Pattern>,
     missing: View,
+    templates: Option<fn(&str) -> Option<&'static str>>,
 }
 
 impl Router {
@@ -31,7 +32,14 @@ impl Router {
             map: StaticMap::default(),
             patterns: Vec::new(),
             missing: default_not_found,
+            templates: None,
         }
+    }
+
+    /// Use these embedded templates when a view calls `render!`.
+    pub fn templates(mut self, load: fn(&str) -> Option<&'static str>) -> Self {
+        self.templates = Some(load);
+        self
     }
 
     /// Bind `path` to `view`.
@@ -59,6 +67,7 @@ impl Router {
     }
 
     pub(crate) fn call(&self, req: &mut Request<'_>) -> Response {
+        req.templates = self.templates;
         if let Some(view) = self.map.get(req.path) {
             return view(req);
         }
