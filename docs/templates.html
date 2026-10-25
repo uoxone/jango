@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
+<title>Templates · Jango</title>
+<meta name="description" content="Jango templates use {{ name }}, {% block %}, and {% extends %}. Values are escaped. The page shell is shared.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="frame">
+<header class="top">
+  <a class="brand" href="index.html">Jango</a>
+  <nav>
+    <a href="start.html">Start</a>
+    <a href="routes.html">Routes</a>
+    <a href="views.html">Views</a>
+    <a href="templates.html" aria-current="page">Templates</a>
+    <a href="ship.html">Ship</a>
+    <a href="test.html">Tests</a>
+  </nav>
+</header>
+<main id="content">
+  <p class="kicker">Templates</p>
+  <h1>A page, and a shell</h1>
+  <p class="lede">HTML lives in <code>templates/</code>. A view asks for a file by name. The values you pass are escaped, so a name cannot become markup.</p>
+
+  <h2>Ask for a page</h2>
+  <pre><code>pub fn home(req: &amp;Request) -&gt; Response {
+    render!(req, "home.html", {
+        "addr" => settings::ADDR,
+    })
+}
+
+pub fn about(req: &amp;Request) -&gt; Response {
+    render!(req, "about.html")
+}</code></pre>
+  <p>Each value is a string. In the file, <code>{{ addr }}</code> prints it. A name you forgot is simply empty. <code>{{ request.path }}</code> and <code>{{ request.method }}</code> come from the request itself.</p>
+  <p>These five characters are escaped: <code>&amp;</code> <code>&lt;</code> <code>&gt;</code> <code>"</code> <code>'</code>. The markup you wrote in the file stays as you wrote it.</p>
+
+  <h2>One shell for every page</h2>
+  <p><code>page.html</code> is the frame. <code>home.html</code> fills the open spaces.</p>
+  <pre><code>&lt;title&gt;{% block title %}{% endblock %}&lt;/title&gt;
+&lt;main&gt;
+{% block content %}{% endblock %}
+&lt;/main&gt;</code></pre>
+  <pre><code>{% extends "page.html" %}
+
+{% block title %}nava · Jango{% endblock %}
+
+{% block content %}
+&lt;h1&gt;nava&lt;/h1&gt;
+&lt;p&gt;Listening on {{ addr }}.&lt;/p&gt;
+{% endblock %}</code></pre>
+  <p><code>{% extends %}</code> is the first tag. Blank lines and <code>{# comments #}</code> may sit above it. Single quotes work too: <code>{% extends 'page.html' %}</code>.</p>
+  <p>A child replaces blocks by name. The deepest child wins. Words in the child that sit outside a block are left out, so the shell stays in charge of the page. <code>{% endblock %}</code> may repeat the block name, or leave it out.</p>
+  <p><code>build.rs</code> reads <code>templates/*.html</code> and embeds them. After a change, the next <code>jango run</code> picks the new files up. The server you ship already contains the pages.</p>
+
+  <h2>When a template is unhappy</h2>
+  <p>A problem becomes a 500 response with a short reason. The usual ones:</p>
+  <table>
+    <tr><th>Situation</th><th>What you see</th></tr>
+    <tr><td>The file is missing</td><td><code>was not found</code></td></tr>
+    <tr><td>A template extends itself, even through a loop</td><td><code>extends itself</code></td></tr>
+    <tr><td>The chain is deeper than 16</td><td><code>too deep</code></td></tr>
+    <tr><td>An unknown tag, such as <code>{% if %}</code></td><td><code>unknown tag</code></td></tr>
+    <tr><td><code>{% extends %}</code> is not the first tag</td><td><code>first tag</code></td></tr>
+    <tr><td>A tag or a block is left open</td><td><code>unclosed</code></td></tr>
+    <tr><td>The router has no templates loaded</td><td><code>not loaded</code></td></tr>
+  </table>
+
+  <p class="next"><a href="ship.html">Ship →</a></p>
+</main>
+<footer>
+  <p>A small framework, written to stay small.</p>
+  <p><a href="index.html">Docs</a> · <a href="https://github.com/uoxone/jango">Source</a></p>
+</footer>
+</div>
+</body>
+</html>

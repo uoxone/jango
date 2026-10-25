@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
+<title>Routes · Jango</title>
+<meta name="description" content="Map each path to a view in urls.rs. Paths are exact. A segment written as &lt;id&gt; captures one piece.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="frame">
+<header class="top">
+  <a class="brand" href="index.html">Jango</a>
+  <nav>
+    <a href="start.html">Start</a>
+    <a href="routes.html" aria-current="page">Routes</a>
+    <a href="views.html">Views</a>
+    <a href="templates.html">Templates</a>
+    <a href="ship.html">Ship</a>
+    <a href="test.html">Tests</a>
+  </nav>
+</header>
+<main id="content">
+  <p class="kicker">Routes</p>
+  <h1>One line, one page</h1>
+  <p class="lede"><code>src/urls.rs</code> is the whole map. A path on the left, a view on the right.</p>
+
+  <h2>The map</h2>
+  <pre><code>use crate::views;
+use jango::prelude::*;
+
+pub fn urlpatterns() -> Router {
+    routes! {
+        "/" => views::home,
+        "/about" => views::about,
+        "/song/&lt;id&gt;" => views::song,
+    }
+}</code></pre>
+  <p>A trailing comma is fine. An empty <code>routes! {}</code> is a router with no pages, so every path answers 404.</p>
+  <p>The new project wires this table in <code>src/main.rs</code>:</p>
+  <pre><code>let app = urls::urlpatterns().templates(templates::load);
+jango::run(settings::ADDR, app).expect("jango");</code></pre>
+
+  <h2>Exact paths</h2>
+  <p><code>/about</code> and <code>/about/</code> are two different doors. <code>/About</code> is a third. The query string is not part of the path, so <code>/song/7?x=1</code> still matches <code>/song/&lt;id&gt;</code>.</p>
+
+  <h2>A piece of the path</h2>
+  <p>Write <code>&lt;id&gt;</code> where one segment should be captured. <code>/song/12</code> gives the view <code>req.param("id")</code> as <code>"12"</code>.</p>
+  <pre><code>"/song/&lt;id&gt;" => views::song,
+"/u/&lt;user&gt;/song/&lt;id&gt;" => views::playlist,</code></pre>
+  <p>A capture is one segment. <code>/song/12/live</code> does not match <code>/song/&lt;id&gt;</code>. A name is ASCII letters, digits, and <code>_</code>, as in <code>&lt;id&gt;</code> or <code>&lt;_id&gt;</code>. A route can hold up to 8 captures.</p>
+  <p>These paths are refused when the router is built:</p>
+  <ul>
+    <li>a path that does not start with <code>/</code></li>
+    <li>an empty segment, such as <code>/song/&lt;id&gt;/</code></li>
+    <li>a broken capture, such as <code>/song/&lt;id</code> or <code>/song/&lt;&gt;</code></li>
+    <li>the same path registered twice</li>
+  </ul>
+
+  <h2>When two routes could match</h2>
+  <p>A fixed path is chosen before a pattern. With both <code>/song/live</code> and <code>/song/&lt;id&gt;</code>, a request for <code>/song/live</code> takes the fixed one.</p>
+  <p>Patterns are tried in the order you wrote them. The first one that fits the path is the one that runs.</p>
+
+  <h2>A missing page</h2>
+  <p>An unknown path returns 404 and the words <code>Not Found</code>. You can choose another view:</p>
+  <pre><code>fn missing(req: &amp;Request) -&gt; Response {
+    Response::status(404, req.path())
+}
+
+let app = urlpatterns().not_found(missing);</code></pre>
+
+  <p class="next"><a href="views.html">Views →</a></p>
+</main>
+<footer>
+  <p>A small framework, written to stay small.</p>
+  <p><a href="index.html">Docs</a> · <a href="https://github.com/uoxone/jango">Source</a></p>
+</footer>
+</div>
+</body>
+</html>

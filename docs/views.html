@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
+<title>Views · Jango</title>
+<meta name="description" content="A Jango view is a function. Read the request, then return HTML, text, JSON, a status, or a redirect.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="frame">
+<header class="top">
+  <a class="brand" href="index.html">Jango</a>
+  <nav>
+    <a href="start.html">Start</a>
+    <a href="routes.html">Routes</a>
+    <a href="views.html" aria-current="page">Views</a>
+    <a href="templates.html">Templates</a>
+    <a href="ship.html">Ship</a>
+    <a href="test.html">Tests</a>
+  </nav>
+</header>
+<main id="content">
+  <p class="kicker">Views</p>
+  <h1>Request in, response out</h1>
+  <p class="lede">A view is a function. It borrows the request for as long as it runs, and it returns the response.</p>
+
+  <h2>A function</h2>
+  <pre><code>use crate::settings;
+use jango::prelude::*;
+
+pub fn home(req: &amp;Request) -&gt; Response {
+    render!(req, "home.html", {
+        "addr" => settings::ADDR,
+    })
+}
+
+pub fn song(req: &amp;Request) -&gt; Response {
+    Response::text(req.param("id").unwrap_or(""))
+}</code></pre>
+  <p><code>jango::prelude</code> brings in <code>Request</code>, <code>Response</code>, <code>Router</code>, <code>Method</code>, <code>routes!</code>, and <code>render!</code>.</p>
+  <p>Keep the function light. It runs on the same thread that holds the connection.</p>
+
+  <h2>Read the request</h2>
+  <table>
+    <tr><th>Call</th><th>Gives you</th></tr>
+    <tr><td><code>req.method()</code></td><td><code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code>, <code>HEAD</code>, or <code>OPTIONS</code></td></tr>
+    <tr><td><code>req.path()</code></td><td>The path, such as <code>/song/12</code></td></tr>
+    <tr><td><code>req.query("q")</code></td><td>The value of <code>?q=soup</code></td></tr>
+    <tr><td><code>req.param("id")</code></td><td>The <code>&lt;id&gt;</code> segment from the route</td></tr>
+    <tr><td><code>req.header("accept")</code></td><td>A header. The name ignores ASCII case.</td></tr>
+    <tr><td><code>req.body()</code></td><td>The raw body bytes</td></tr>
+    <tr><td><code>req.body_str()</code></td><td>The body as text, when it is UTF-8</td></tr>
+  </table>
+  <p>In <code>?q=a=b&amp;q=second&amp;flag</code>, <code>query("q")</code> is <code>a=b</code> and <code>query("flag")</code> is an empty string. The first value wins. Jango leaves <code>%20</code> as <code>%20</code>.</p>
+  <p>A missing query, parameter, or header is <code>None</code>. A body that is not UTF-8 makes <code>body_str()</code> return <code>None</code>. The bytes are still there in <code>body()</code>.</p>
+
+  <h2>Answer</h2>
+  <table>
+    <tr><th>Call</th><th>Status</th><th>Content type</th></tr>
+    <tr><td><code>Response::text("hi")</code></td><td>200</td><td><code>text/plain; charset=utf-8</code></td></tr>
+    <tr><td><code>Response::html("&lt;p&gt;")</code></td><td>200</td><td><code>text/html; charset=utf-8</code></td></tr>
+    <tr><td><code>Response::json("{}")</code></td><td>200</td><td><code>application/json; charset=utf-8</code></td></tr>
+    <tr><td><code>Response::status(201, "created")</code></td><td>the code you pass</td><td><code>text/plain; charset=utf-8</code></td></tr>
+    <tr><td><code>Response::redirect("/next")</code></td><td>302</td><td>an empty body and a <code>Location</code> header</td></tr>
+  </table>
+  <p><code>Response::status</code> accepts codes from 100 through 599. A <code>HEAD</code> request receives the headers, including <code>Content-Length</code>, and an empty body.</p>
+  <p>Jango reads <code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code>, <code>HEAD</code>, and <code>OPTIONS</code>. HTTP/1.1 stays open for the next request. HTTP/1.0 closes unless the client sends <code>Connection: keep-alive</code>. Send <code>Connection: close</code> when you want the conversation to end.</p>
+  <p>The body arrives with <code>Content-Length</code>, up to 2 MB. A chunked body is refused. A request may carry up to 32 headers.</p>
+
+  <p class="next"><a href="templates.html">Templates →</a></p>
+</main>
+<footer>
+  <p>A small framework, written to stay small.</p>
+  <p><a href="index.html">Docs</a> · <a href="https://github.com/uoxone/jango">Source</a></p>
+</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
+<title>Jango</title>
+<meta name="description" content="Jango is a small Django-style web framework for Rust. A view is a function. A path is one line.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="frame">
+<header class="top">
+  <a class="brand" href="index.html">Jango</a>
+  <nav>
+    <a href="start.html">Start</a>
+    <a href="routes.html">Routes</a>
+    <a href="views.html">Views</a>
+    <a href="templates.html">Templates</a>
+    <a href="ship.html">Ship</a>
+    <a href="test.html">Tests</a>
+  </nav>
+</header>
+<main id="content" class="home">
+  <p class="kicker">Web framework</p>
+  <h1>Jango</h1>
+  <p class="lede">Inspired by Django. Written in Rust. You keep a short list of paths, each path calls a function, and the HTML lives in a template.</p>
+  <p>When the pages feel right, one file is the whole server. The standard library is the only dependency.</p>
+
+  <ol class="chapters">
+    <li>
+      <a href="start.html">
+        <span class="num">01</span>
+        <span>
+          <strong>Start</strong>
+          <span class="hint">Install the command and open nava.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a href="routes.html">
+        <span class="num">02</span>
+        <span>
+          <strong>Routes</strong>
+          <span class="hint">The map of the site, one line per page.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a href="views.html">
+        <span class="num">03</span>
+        <span>
+          <strong>Views</strong>
+          <span class="hint">A request comes in. A response goes out.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a href="templates.html">
+        <span class="num">04</span>
+        <span>
+          <strong>Templates</strong>
+          <span class="hint">A shared page, and a quiet place for each value.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a href="ship.html">
+        <span class="num">05</span>
+        <span>
+          <strong>Ship</strong>
+          <span class="hint">Build one file and let it listen.</span>
+        </span>
+      </a>
+    </li>
+    <li>
+      <a href="test.html">
+        <span class="num">06</span>
+        <span>
+          <strong>Tests</strong>
+          <span class="hint">How to know the framework still holds.</span>
+        </span>
+      </a>
+    </li>
+  </ol>
+
+  <div class="note">
+    <p>Stage 1 is projects, URLs, views, templates, and the HTTP server.</p>
+    <p>A database, admin, middleware, chunked bodies, and IPv6 are waiting for a later stage.</p>
+  </div>
+</main>
+<footer>
+  <p>A small framework, written to stay small.</p>
+  <p><a href="https://github.com/uoxone/jango">Source</a></p>
+</footer>
+</div>
+</body>
+</html>

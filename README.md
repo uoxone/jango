@@ -1,148 +1,51 @@
+<div align="center">
+
 # Jango
 
-A tiny Django-style web framework for Rust. 🧡
+**Inspired by Django and implemented in Rust**
 
-Stage 1 is the fun part: projects, URLs, views, and a fast little server. The whole stack lives in this repo. The standard library is the only dependency. No crates from outside.
+[📚 Docs](https://uoxone.github.io/jango/) · [🌿 Start](https://uoxone.github.io/jango/start.html) · [🧭 Routes](https://uoxone.github.io/jango/routes.html) · [🧪 Tests](https://uoxone.github.io/jango/test.html)
 
-## 🚀 Git Commit Guidelines
+</div>
 
-- ✨ feat: for new features
-- 🔥 fix: for bug fixes
-- ♻️ refactor: for code refactoring that does not add features or fix bugs
-- 🗑️ remove: remove codes or packages
+---
 
-## ✨ Start a project
+## 🌿 Install the command
 
-From this folder, once:
+From this folder:
 
 ```bash
 cargo install --path .
 ```
 
-Then the good part:
+## 🌿 From a fresh clone
+
+```bash
+git clone https://github.com/uoxone/jango.git
+cd jango
+cargo install --path .
+```
+
+`cargo install --path .` builds this folder and puts the `jango` command on your PATH.
+
+## ✨ Create and run
 
 ```bash
 jango create project nava
 jango run nava
 ```
 
-`jango run` is the cozy dev loop. It compiles quickly so you can keep editing views.
+The server is at `http://127.0.0.1:8000`.
 
-Want the fast binary?
+## 📚 Docs
 
-```bash
-jango build nava
-```
+The full guide is at [uoxone.github.io/jango](https://uoxone.github.io/jango/).
 
-Prefer to skip the install? This works too:
+## 🚀 Git commit guidelines
 
-```bash
-cargo run -- create project nava
-cargo run -- run nava
-```
-
-## 🎵 Write something lovely
-
-`src/urls.rs` is the whole map. One line, one page.
-
-```rust
-pub fn urlpatterns() -> Router {
-    routes! {
-        "/" => views::home,
-        "/about" => views::about,
-        "/song/<id>" => views::song,
-    }
-}
-```
-
-`src/views.rs` is just functions. Request in, response out. HTML lives in `templates/`.
-
-```rust
-pub fn home(req: &Request) -> Response {
-    render!(req, "home.html", {
-        "addr" => settings::ADDR,
-    })
-}
-
-pub fn song(req: &Request) -> Response {
-    Response::text(req.param("id").unwrap_or(""))
-}
-```
-
-`{{ addr }}` and `{{ request.path }}` are escaped. `{% extends "page.html" %}` and `{% block content %}` share the page shell.
-
-Paths are exact, so `/about` and `/about/` are two different doors. `<id>` catches one piece of the path, like `/song/12`.
-
-Handy helpers:
-
-- `render!(req, "home.html")`
-- `Response::html`, `text`, `json`, `status`, `redirect`
-- `req.method()`, `req.query("q")`, `req.body_str()`, `req.param("id")`
-
-## 📦 Ship it
-
-Yes. The server does not need Cargo or rustc.
-
-```bash
-jango build nava
-```
-
-Upload this one file and run it:
-
-```text
-nava/target/release/nava
-```
-
-```bash
-./nava
-```
-
-Before you upload, set `ADDR` in `src/settings.rs` to `0.0.0.0:8000` so the world can knock. 🌍
-
-The binary links to the system libc, which Linux already has. Build it on a machine whose glibc is close to the server's, and you are done.
-
-Your laptop still uses Cargo to compile. The server only runs the file.
-
-## ⚡ Speed
-
-Jango speaks HTTP itself: `epoll`, one thread per core, `SO_REUSEPORT`. A small response walks a short path.
-
-On this machine, a small release build did about:
-
-- 🎯 **400,000** requests/sec with 8 keep-alive connections
-- 🚀 **975,000** requests/sec when requests were sent in a batch
-
-Keep views light. They run on the same thread that holds the connection.
-
-## 🧪 Run the tests
-
-From this folder:
-
-```bash
-cargo test
-```
-
-You get the framework tests, the `jango` command tests, and the doc test. A good run ends in `ok`.
-
-A smaller slice:
-
-```bash
-cargo test --lib           # framework
-cargo test --bin jango     # create, run, build
-cargo test template        # tests with template in the name
-cargo test -- --list       # names only
-```
-
-The tests live in `core/tests/`, one file per module. One of them listens on `127.0.0.1`. The rest stay in the process.
-
-## 🌱 Stage 1
-
-Already here, and happy about it:
-
-- 📁 `create`, `run`, and `build`
-- 🧭 exact paths and `/song/<id>`
-- 📬 `GET` `POST` `PUT` `PATCH` `DELETE` `HEAD` `OPTIONS`
-- 🔗 `Content-Length` bodies and keep-alive
-- 📄 `templates/` with `{{ name }}`, `{% block %}`, and `{% extends %}`
-
-Saved for a later stage: a database, admin, middleware, chunked bodies, and IPv6.
+| Prefix | When |
+| --- | --- |
+| ✨ `feat:` | a new feature |
+| 🔧 `fix:` | a bug fix |
+| ♻️ `refactor:` | a change that does not add a feature or fix a bug |
+| 🗑️ `remove:` | code or packages removed |
