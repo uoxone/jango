@@ -1,0 +1,34 @@
+use crate::settings;
+use jango::prelude::*;
+
+// -----------------------------------------------
+// Views
+// A view is a function: request in, response out.
+// templates/page.html is the shared page shell.
+// -----------------------------------------------
+
+const PAGE: &str = include_str!("../templates/page.html");
+
+pub fn home(_req: &Request) -> Response {
+    render("__NAME__", include_str!("../templates/home.html"))
+}
+
+pub fn about(req: &Request) -> Response {
+    let body = include_str!("../templates/about.html").replace("{{path}}", &esc(req.path()));
+    render("About · __NAME__", &body)
+}
+
+fn render(title: &str, body: &str) -> Response {
+    Response::html(
+        PAGE.replace("{{body}}", body)
+            .replace("{{title}}", &esc(title))
+            .replace("{{addr}}", &esc(settings::ADDR)),
+    )
+}
+
+fn esc(text: &str) -> String {
+    text.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+}

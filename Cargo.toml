@@ -11,13 +11,19 @@ edition = "2021"
 description = "A small, fast, Django-style web framework"
 publish = false
 
+# -----------------------------------------------
+# Layout
+# core/src is the framework and the jango command.
+# core/templates is the blueprint for a new project.
+# -----------------------------------------------
+
 [lib]
 name = "jango"
-path = "src/lib.rs"
+path = "core/src/lib.rs"
 
 [[bin]]
 name = "jango"
-path = "src/main.rs"
+path = "core/src/main.rs"
 
 # Release builds one optimized binary. Copy that file
 # to a server and run it; cargo is not needed there.

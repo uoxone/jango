@@ -12,6 +12,9 @@ const MAIN_TMPL: &str = include_str!("../templates/main.rs.in");
 const SETTINGS_TMPL: &str = include_str!("../templates/settings.rs.in");
 const URLS_TMPL: &str = include_str!("../templates/urls.rs.in");
 const VIEWS_TMPL: &str = include_str!("../templates/views.rs.in");
+const PAGE_TMPL: &str = include_str!("../templates/page.html.in");
+const HOME_TMPL: &str = include_str!("../templates/home.html.in");
+const ABOUT_TMPL: &str = include_str!("../templates/about.html.in");
 const GITIGNORE_TMPL: &str = include_str!("../templates/gitignore.in");
 
 fn main() {
@@ -85,7 +88,7 @@ fn take_flag(args: &mut Vec<String>, flag: &str) -> bool {
 // -----------------------------------------------
 // create project
 // Writes a tiny app that depends only on this
-// jango crate. No other packages are added.
+// jango crate. templates/ is the first page.
 // -----------------------------------------------
 
 fn create(args: &[String]) -> Result<(), String> {
@@ -107,24 +110,31 @@ fn create(args: &[String]) -> Result<(), String> {
         return Err(format!("`{name}` already exists"));
     }
     let lib = jango_lib_path()?;
-    let cargo = CARGO_TMPL
-        .replace("__NAME__", name)
-        .replace("__JANGO__", &lib);
+    let cargo = fill(CARGO_TMPL, name).replace("__JANGO__", &lib);
 
     fs::create_dir_all(dir.join("src")).map_err(|err| err.to_string())?;
+    fs::create_dir_all(dir.join("templates")).map_err(|err| err.to_string())?;
     write(&dir.join("Cargo.toml"), &cargo)?;
     write(&dir.join("src/main.rs"), MAIN_TMPL)?;
     write(&dir.join("src/settings.rs"), SETTINGS_TMPL)?;
     write(&dir.join("src/urls.rs"), URLS_TMPL)?;
-    write(&dir.join("src/views.rs"), VIEWS_TMPL)?;
+    write(&dir.join("src/views.rs"), &fill(VIEWS_TMPL, name))?;
+    write(&dir.join("templates/page.html"), PAGE_TMPL)?;
+    write(&dir.join("templates/home.html"), &fill(HOME_TMPL, name))?;
+    write(&dir.join("templates/about.html"), &fill(ABOUT_TMPL, name))?;
     write(&dir.join(".gitignore"), GITIGNORE_TMPL)?;
 
     println!("created {name}");
     println!("  {name}/src/urls.rs");
     println!("  {name}/src/views.rs");
+    println!("  {name}/templates/home.html");
     println!();
     println!("next:  jango run {name}");
     Ok(())
+}
+
+fn fill(text: &str, name: &str) -> String {
+    text.replace("__NAME__", name)
 }
 
 fn valid_name(name: &str) -> bool {
@@ -243,10 +253,15 @@ mod tests {
 
         let urls = fs::read_to_string(root.join("nava/src/urls.rs")).unwrap();
         let main_rs = fs::read_to_string(root.join("nava/src/main.rs")).unwrap();
+        let views = fs::read_to_string(root.join("nava/src/views.rs")).unwrap();
+        let home = fs::read_to_string(root.join("nava/templates/home.html")).unwrap();
         let cargo = fs::read_to_string(root.join("nava/Cargo.toml")).unwrap();
         assert!(urls.contains("routes!"));
         assert!(urls.contains("views::home"));
         assert!(main_rs.contains("mod views;"));
+        assert!(views.contains("templates/home.html"));
+        assert!(views.contains("render(\"nava\""));
+        assert!(home.contains("<h1>nava</h1>"));
         assert!(cargo.contains("name = \"nava\""));
         assert!(cargo.contains("jango = { path ="));
         let _ = fs::remove_dir_all(&root);

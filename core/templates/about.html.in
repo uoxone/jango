@@ -1,0 +1,4 @@
+<p class="kicker"><a href="/">__NAME__</a></p>
+<h1>About</h1>
+<p class="lead">You are on <code>{{path}}</code>.</p>
+<p class="back"><a href="/">← Home</a></p>

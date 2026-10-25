@@ -38,7 +38,7 @@ pub fn urlpatterns() -> Router {
 - Keep the server faster than Axum by staying small: no Tower, no Hyper, no middleware stack.
 - `jango create project <name>`, `jango run <name>`, and `jango build <name>` are the commands.
 - `jango build` must produce one executable. That file runs on a server with no Cargo and no rustc. It may link the system libc.
-- The `jango` command on disk is `~/.cargo/bin/jango`. Editing `src/main.rs` does nothing until `cargo install --path .`.
+- The `jango` command on disk is `~/.cargo/bin/jango`. Editing `core/src/main.rs` does nothing until `cargo install --path .`.
 
 ## Scope
 

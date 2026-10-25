@@ -1,0 +1,24 @@
+<p class="kicker">
+  <span class="dot" aria-hidden="true"></span>
+  <span class="label">Listening</span>
+  <code class="addr">{{addr}}</code>
+</p>
+<h1>__NAME__</h1>
+<p class="lead">The server is up. Edit this page in <code>templates/home.html</code>.</p>
+<ul class="routes">
+  <li>
+    <div class="row" aria-current="page">
+      <code>/</code>
+      <span>home</span>
+    </div>
+  </li>
+  <li>
+    <a href="/about">
+      <code>/about</code>
+      <span>about</span>
+    </a>
+  </li>
+</ul>
+<footer>
+  <p>Paths are exact, so <code>/about</code> and <code>/about/</code> are different pages.</p>
+</footer>
