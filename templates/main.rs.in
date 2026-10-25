@@ -1,0 +1,12 @@
+mod settings;
+mod urls;
+mod views;
+
+// -----------------------------------------------
+// Start
+// settings::ADDR is the listen address.
+// urls::urlpatterns() is the route table.
+// -----------------------------------------------
+fn main() {
+    jango::run(settings::ADDR, urls::urlpatterns()).expect("jango");
+}

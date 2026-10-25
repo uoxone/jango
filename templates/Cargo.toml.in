@@ -1,0 +1,21 @@
+[package]
+name = "__NAME__"
+version = "0.1.0"
+edition = "2021"
+
+# -----------------------------------------------
+# Only jango. Nothing from outside this project.
+# -----------------------------------------------
+[dependencies]
+jango = { path = "__JANGO__" }
+
+# -----------------------------------------------
+# Release
+# One optimized binary. Copy it to the server
+# and run it there. Cargo stays on your machine.
+# -----------------------------------------------
+[profile.release]
+lto = "fat"
+codegen-units = 1
+opt-level = 3
+strip = "symbols"

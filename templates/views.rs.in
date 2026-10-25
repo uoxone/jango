@@ -1,0 +1,14 @@
+use jango::prelude::*;
+
+// -----------------------------------------------
+// Views
+// A view is a function: request in, response out.
+// -----------------------------------------------
+
+pub fn home(_req: &Request) -> Response {
+    Response::html("<h1>nava</h1><p><a href=\"/about\">about</a></p>")
+}
+
+pub fn about(req: &Request) -> Response {
+    Response::text(format!("about {}", req.path()))
+}

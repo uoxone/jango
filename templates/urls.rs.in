@@ -1,0 +1,15 @@
+use crate::views;
+use jango::prelude::*;
+
+// -----------------------------------------------
+// URLs
+// Each line maps a path to a view.
+// <id> captures one segment, for example /song/<id>.
+// -----------------------------------------------
+
+pub fn urlpatterns() -> Router {
+    routes! {
+        "/" => views::home,
+        "/about" => views::about,
+    }
+}

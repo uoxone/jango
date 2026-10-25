@@ -1,0 +1,28 @@
+# -----------------------------------------------
+# Jango
+# No crates from outside this project. The standard
+# library is the only dependency.
+# -----------------------------------------------
+
+[package]
+name = "jango"
+version = "0.1.0"
+edition = "2021"
+description = "A small, fast, Django-style web framework"
+publish = false
+
+[lib]
+name = "jango"
+path = "src/lib.rs"
+
+[[bin]]
+name = "jango"
+path = "src/main.rs"
+
+# Release builds one optimized binary. Copy that file
+# to a server and run it; cargo is not needed there.
+[profile.release]
+lto = "thin"
+codegen-units = 1
+opt-level = 3
+strip = "symbols"
