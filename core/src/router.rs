@@ -246,29 +246,5 @@ impl Pattern {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::http::Method;
-
-    fn home(req: &Request) -> Response {
-        Response::text(req.path())
-    }
-
-    fn item(req: &Request) -> Response {
-        Response::text(req.param("id").unwrap_or(""))
-    }
-
-    #[test]
-    fn static_and_captured_routes() {
-        let router = Router::new().route("/", home).route("/song/<id>", item);
-        let headers = [];
-        let mut root = Request::new(Method::Get, "/", "", &headers, b"");
-        assert_eq!(router.call(&mut root).body, b"/");
-
-        let mut song = Request::new(Method::Get, "/song/12", "", &headers, b"");
-        assert_eq!(router.call(&mut song).body, b"12");
-
-        let mut missing = Request::new(Method::Get, "/nope", "", &headers, b"");
-        assert_eq!(router.call(&mut missing).status, 404);
-    }
-}
+#[path = "../tests/router.rs"]
+mod tests;

@@ -169,36 +169,5 @@ fn keep_alive(http11: bool, headers: &[(&str, &str)]) -> bool {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn parses_get_and_leaves_the_next_byte() {
-        let raw = b"GET /menu?q=soup HTTP/1.1\r\nHost: localhost\r\n\r\nNEXT";
-        let Parse::Hit(hit) = parse(raw) else {
-            panic!("expected a request");
-        };
-        assert_eq!(hit.method, Method::Get);
-        assert_eq!(hit.path, "/menu");
-        assert_eq!(hit.query, "q=soup");
-        assert!(hit.keep_alive);
-        assert_eq!(hit.body, b"");
-        assert_eq!(&raw[hit.total..], b"NEXT");
-    }
-
-    #[test]
-    fn waits_for_the_post_body() {
-        let partial = b"POST / HTTP/1.1\r\nContent-Length: 5\r\n\r\nhel";
-        assert!(matches!(parse(partial), Parse::Need));
-        let full = b"POST / HTTP/1.1\r\nContent-Length: 5\r\n\r\nhello";
-        let Parse::Hit(hit) = parse(full) else {
-            panic!("expected a request");
-        };
-        assert_eq!(hit.body, b"hello");
-    }
-
-    #[test]
-    fn rejects_a_broken_request_line() {
-        assert!(matches!(parse(b"GET\r\n\r\n"), Parse::Fail(400)));
-    }
-}
+#[path = "../tests/parse.rs"]
+mod tests;

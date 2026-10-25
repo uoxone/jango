@@ -231,16 +231,5 @@ pub(crate) fn eq_ignore(left: &str, right: &str) -> bool {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn query_and_header_lookup() {
-        let headers = [("Host", "localhost"), ("Accept", "text/plain")];
-        let req = Request::new(Method::Get, "/menu", "q=soup&page=2", &headers, b"");
-        assert_eq!(req.query("q"), Some("soup"));
-        assert_eq!(req.query("missing"), None);
-        assert_eq!(req.header("accept"), Some("text/plain"));
-        assert_eq!(req.method(), Method::Get);
-    }
-}
+#[path = "../tests/http.rs"]
+mod tests;

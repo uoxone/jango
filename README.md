@@ -114,6 +114,27 @@ On this machine, a small release build did about:
 
 Keep views light. They run on the same thread that holds the connection.
 
+## 🧪 Run the tests
+
+From this folder:
+
+```bash
+cargo test
+```
+
+You get the framework tests, the `jango` command tests, and the doc test. A good run ends in `ok`.
+
+A smaller slice:
+
+```bash
+cargo test --lib           # framework
+cargo test --bin jango     # create, run, build
+cargo test template        # tests with template in the name
+cargo test -- --list       # names only
+```
+
+The tests live in `core/tests/`, one file per module. One of them listens on `127.0.0.1`. The rest stay in the process.
+
 ## 🌱 Stage 1
 
 Already here, and happy about it:

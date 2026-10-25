@@ -56,3 +56,7 @@ macro_rules! routes {
             $(.route($path, $view))*
     };
 }
+
+#[cfg(test)]
+#[path = "../tests/routes.rs"]
+mod tests;

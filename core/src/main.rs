@@ -239,38 +239,5 @@ fn wait(mut cmd: Command) -> Result<(), String> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn create_writes_urls_and_depends_only_on_jango() {
-        let root = std::env::temp_dir().join(format!("jango-cli-{}", process::id()));
-        let _ = fs::remove_dir_all(&root);
-        fs::create_dir_all(&root).unwrap();
-        let saved = env::current_dir().unwrap();
-        env::set_current_dir(&root).unwrap();
-        let result = create(&["create".into(), "project".into(), "nava".into()]);
-        env::set_current_dir(saved).unwrap();
-        result.unwrap();
-
-        let urls = fs::read_to_string(root.join("nava/src/urls.rs")).unwrap();
-        let main_rs = fs::read_to_string(root.join("nava/src/main.rs")).unwrap();
-        let views = fs::read_to_string(root.join("nava/src/views.rs")).unwrap();
-        let home = fs::read_to_string(root.join("nava/templates/home.html")).unwrap();
-        let cargo = fs::read_to_string(root.join("nava/Cargo.toml")).unwrap();
-        assert!(urls.contains("routes!"));
-        assert!(urls.contains("views::home"));
-        assert!(main_rs.contains("mod views;"));
-        assert!(main_rs.contains("templates::load"));
-        assert!(views.contains("render!(req, \"home.html\""));
-        assert!(!views.contains("include_str!"));
-        assert!(home.contains("{% extends \"page.html\" %}"));
-        assert!(home.contains("<h1>nava</h1>"));
-        assert!(fs::read_to_string(root.join("nava/build.rs"))
-            .unwrap()
-            .contains("templates"));
-        assert!(cargo.contains("name = \"nava\""));
-        assert!(cargo.contains("jango = { path ="));
-        let _ = fs::remove_dir_all(&root);
-    }
-}
+#[path = "../tests/cli.rs"]
+mod tests;

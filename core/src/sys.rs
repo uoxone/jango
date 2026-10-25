@@ -297,12 +297,5 @@ pub(crate) fn close_fd(fd: i32) -> io::Result<()> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn epoll_event_matches_the_kernel_layout() {
-        assert_eq!(std::mem::size_of::<EpollEvent>(), 12);
-        assert_eq!(std::mem::size_of::<SockAddrIn>(), 16);
-    }
-}
+#[path = "../tests/sys.rs"]
+mod tests;
