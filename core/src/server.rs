@@ -6,7 +6,7 @@
 
 #![forbid(unsafe_code)]
 
-use std::io::{self, ErrorKind};
+use std::io::{self, ErrorKind, Seek, SeekFrom};
 use std::net::{SocketAddr, SocketAddrV4, ToSocketAddrs};
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::sync::mpsc;
@@ -73,6 +73,7 @@ pub fn run(addr: &str, router: Router) -> io::Result<()> {
     Ok(())
 }
 
+/// The first IPv4 address. An IPv6-only name is an error.
 fn resolve(addr: &str) -> io::Result<SocketAddrV4> {
     let mut saw_v6 = false;
     for found in addr.to_socket_addrs()? {
@@ -89,6 +90,7 @@ fn resolve(addr: &str) -> io::Result<SocketAddrV4> {
     Err(io::Error::new(ErrorKind::InvalidInput, message))
 }
 
+/// One core. It owns a listen socket and an epoll loop.
 fn worker(addr: SocketAddrV4, router: &Router, ready: mpsc::Sender<io::Result<()>>) {
     let listen = match sys::listen_socket(addr) {
         Ok(fd) => fd,
@@ -142,6 +144,7 @@ fn worker(addr: SocketAddrV4, router: &Router, ready: mpsc::Sender<io::Result<()
     let _ = sys::close_fd(listen);
 }
 
+/// Accept until the kernel says the queue is empty.
 fn accept_all(listen: i32, ep: i32, table: &mut Table) {
     loop {
         match sys::accept(listen) {
@@ -170,6 +173,7 @@ fn accept_all(listen: i32, ep: i32, table: &mut Table) {
     }
 }
 
+/// Read and answer on this connection. `false` means close it.
 fn drive(table: &mut Table, id: usize, router: &Router) -> bool {
     let Some(conn) = table.get_mut(id) else {
         return false;
@@ -188,7 +192,7 @@ fn drive(table: &mut Table, id: usize, router: &Router) -> bool {
             },
             Parse::Fail(status) => {
                 let response = Response::status(status, reason(status));
-                let _ = send(conn.fd, &response, false, true);
+                let _ = send(conn.fd, response, false, true);
                 return false;
             }
             Parse::Hit(hit) => {
@@ -196,7 +200,7 @@ fn drive(table: &mut Table, id: usize, router: &Router) -> bool {
                 let keep = hit.keep_alive;
                 let total = hit.total;
                 let response = dispatch(router, &hit);
-                if send(conn.fd, &response, keep, send_body).is_err() {
+                if send(conn.fd, response, keep, send_body).is_err() {
                     return false;
                 }
                 conn.buf.copy_within(total.., 0);
@@ -209,13 +213,19 @@ fn drive(table: &mut Table, id: usize, router: &Router) -> bool {
     }
 }
 
+/// What one non-blocking read did.
 enum Read {
+    /// Bytes were appended to the connection buffer.
     Data,
+    /// The socket has nothing more right now.
     Empty,
+    /// The peer closed the connection.
     Closed,
+    /// The read failed.
     Err,
 }
 
+/// One read from the socket into the connection buffer.
 fn read_some(conn: &mut Conn) -> Read {
     loop {
         match sys::read_append(conn.fd, &mut conn.buf) {
@@ -228,6 +238,7 @@ fn read_some(conn: &mut Conn) -> Read {
     }
 }
 
+/// Run the view. A panic in the view becomes a 500.
 fn dispatch(router: &Router, hit: &parse::Parsed<'_>) -> Response {
     let mut req = Request::new(
         hit.method,
@@ -242,20 +253,78 @@ fn dispatch(router: &Router, hit: &parse::Parsed<'_>) -> Response {
     }
 }
 
-fn send(fd: i32, response: &Response, keep_alive: bool, send_body: bool) -> io::Result<()> {
-    let len = response.body.len();
-    let body: &[u8] = if send_body { &response.body } else { b"" };
+/// Write headers, then the memory body or a static file.
+///
+/// `send_body` is false for `HEAD`: the length is still sent.
+fn send(fd: i32, mut response: Response, keep_alive: bool, send_body: bool) -> io::Result<()> {
+    let len = response.output_len();
+    let opened = match response.file.take() {
+        Some(mut file) if send_body => Some(open_file(&mut file)?),
+        _ => None,
+    };
+    let body: &[u8] = if opened.is_none() && send_body {
+        &response.body
+    } else {
+        b""
+    };
     let mut stack = [0u8; 1024];
-    if let Some(header_len) = write_header(&mut stack, response, len, keep_alive) {
-        return sys::write_two(fd, &stack[..header_len], body);
+    if let Some(header_len) = write_header(&mut stack, &response, len, keep_alive) {
+        sys::write_two(fd, &stack[..header_len], body)?;
+    } else {
+        let mut heap = vec![0u8; response_header_len(&response, len)];
+        let n = write_header(&mut heap, &response, len, keep_alive).expect("header buffer");
+        heap.truncate(n);
+        sys::write_two(fd, &heap, body)?;
     }
-    let mut heap = vec![0u8; response_header_len(response, body.len())];
-    let len = write_header(&mut heap, response, body.len(), keep_alive).expect("header buffer");
-    heap.truncate(len);
-    sys::write_two(fd, &heap, body)
+    if let Some(mut file) = opened {
+        write_file(fd, &mut file, len)?;
+    }
+    Ok(())
 }
 
-fn response_header_len(response: &Response, body_len: usize) -> usize {
+// -----------------------------------------------
+// Static body
+// Headers go out first, with Content-Length.
+// The file follows in 64 KiB pieces, from the
+// byte the range asked for.
+// -----------------------------------------------
+
+/// Use the file already opened for a static response, or open `path`.
+///
+/// A range starts at `file.start`. The common case starts at byte 0.
+fn open_file(file: &mut crate::http::FileBody) -> io::Result<std::fs::File> {
+    let mut opened = match file.opened.take() {
+        Some(opened) => opened,
+        None => std::fs::File::open(&file.path)?,
+    };
+    if file.start > 0 {
+        opened.seek(SeekFrom::Start(file.start))?;
+    }
+    Ok(opened)
+}
+
+/// Copy `left` bytes from the file to the socket, 64 KiB at a time.
+fn write_file(fd: i32, file: &mut std::fs::File, mut left: u64) -> io::Result<()> {
+    use std::io::Read;
+
+    let mut buf = [0u8; 65536];
+    while left > 0 {
+        let want = left.min(buf.len() as u64) as usize;
+        let n = file.read(&mut buf[..want])?;
+        if n == 0 {
+            return Err(io::Error::new(
+                ErrorKind::UnexpectedEof,
+                "static file ended early",
+            ));
+        }
+        sys::write_two(fd, &buf[..n], b"")?;
+        left -= n as u64;
+    }
+    Ok(())
+}
+
+/// Bytes the header can need, so the heap buffer is large enough.
+fn response_header_len(response: &Response, body_len: u64) -> usize {
     160 + response.content_type.len()
         + digits(body_len)
         + response
@@ -263,9 +332,16 @@ fn response_header_len(response: &Response, body_len: usize) -> usize {
             .as_ref()
             .map(|loc| loc.len() + 12)
             .unwrap_or(0)
+        + if response.accept_ranges { 22 } else { 0 }
+        + response
+            .content_range
+            .as_ref()
+            .map(|range| range.len() + 17)
+            .unwrap_or(0)
 }
 
-fn write_header(buf: &mut [u8], response: &Response, len: usize, keep: bool) -> Option<usize> {
+/// Write the status line and headers into `buf`. `None` if `buf` is short.
+fn write_header(buf: &mut [u8], response: &Response, len: u64, keep: bool) -> Option<usize> {
     let mut out = Out { buf, n: 0 };
     out.bytes(b"HTTP/1.1 ")?;
     out.status(response.status)?;
@@ -274,7 +350,14 @@ fn write_header(buf: &mut [u8], response: &Response, len: usize, keep: bool) -> 
     out.bytes(b"\r\nContent-Type: ")?;
     out.bytes(response.content_type.as_bytes())?;
     out.bytes(b"\r\nContent-Length: ")?;
-    out.usize(len)?;
+    out.u64(len)?;
+    if response.accept_ranges {
+        out.bytes(b"\r\nAccept-Ranges: bytes")?;
+    }
+    if let Some(range) = &response.content_range {
+        out.bytes(b"\r\nContent-Range: ")?;
+        out.bytes(range.as_bytes())?;
+    }
     out.bytes(if keep {
         b"\r\nConnection: keep-alive\r\nServer: ongo\r\n"
     } else {
@@ -315,7 +398,7 @@ impl Out<'_> {
         self.byte(b'0' + (code % 10) as u8)
     }
 
-    fn usize(&mut self, mut value: usize) -> Option<()> {
+    fn u64(&mut self, mut value: u64) -> Option<()> {
         let mut tmp = [0u8; 20];
         let mut at = 20;
         loop {
@@ -330,7 +413,8 @@ impl Out<'_> {
     }
 }
 
-fn digits(mut value: usize) -> usize {
+/// How many characters `value` needs in `Content-Length`.
+fn digits(mut value: u64) -> usize {
     let mut count = 1;
     while value >= 10 {
         value /= 10;
@@ -386,6 +470,7 @@ impl Table {
     }
 }
 
+/// Close the socket and keep the read buffer for the next connection.
 fn drop_conn(table: &mut Table, ep: i32, id: usize) {
     let Some(slot) = table.conns.get_mut(id) else {
         return;

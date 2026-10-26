@@ -1,3 +1,5 @@
+//! Tests for `{{ }}`, blocks, `extends`, `static`, and the sample pages.
+
 use super::*;
 use crate::http::Method;
 
@@ -35,6 +37,14 @@ fn load(name: &str) -> Option<&'static str> {
         "late.html" => "x{% extends \"base.html\" %}",
         "emptyname.html" => "{% extends \"\" %}",
         "bare.html" => "{% extends page %}",
+        "asset.html" => "<link href=\"{% static 'css/site.css' %}\">",
+        "esc.html" => "{% static \"a<b.css\" %}",
+        "childstatic.html" => {
+            "{% extends \"base.html\" %}{% block a %}{% static \"a.css\" %}{% endblock %}"
+        },
+        "badstatic.html" => "{% static \"../secret.css\" %}",
+        "absstatic.html" => "{% static \"/style.css\" %}",
+        "barestatic.html" => "{% static style.css %}",
         "badblock.html" => "{% block 1 %}",
         "novar.html" => "{{ }}",
         "opencom.html" => "{# hi",
@@ -115,6 +125,9 @@ fn template_errors() {
         ("late.html", "first tag"),
         ("emptyname.html", "invalid template name"),
         ("bare.html", "must be quoted"),
+        ("badstatic.html", "invalid static path"),
+        ("absstatic.html", "invalid static path"),
+        ("barestatic.html", "must be quoted"),
         ("badblock.html", "invalid block"),
     ] {
         let res = render(&req, name, empty);
@@ -126,6 +139,24 @@ fn template_errors() {
     let res = render(&lost, "plain.html", empty);
     assert_eq!(res.status, 500);
     assert!(body(&res).contains("not loaded"));
+
+    let mut styled = sample("/");
+    styled.static_url = Some("/static/");
+    assert_eq!(
+        body(&render(&styled, "asset.html", empty)),
+        "<link href=\"/static/css/site.css\">"
+    );
+    assert_eq!(
+        body(&render(&styled, "esc.html", empty)),
+        "/static/a&lt;b.css"
+    );
+    assert_eq!(
+        body(&render(&styled, "childstatic.html", empty)),
+        "P/static/a.cssB"
+    );
+    let missed = render(&sample("/"), "asset.html", empty);
+    assert_eq!(missed.status, 500);
+    assert!(body(&missed).contains("not configured"));
 }
 
 #[test]
@@ -175,6 +206,7 @@ fn project_templates_render() {
 
     let mut req = Request::new(Method::Get, "/about", "", &[], b"");
     req.templates = Some(project);
+    req.static_url = Some("/static/");
     let home = render(&req, "home.html", &[("addr", "127.0.0.1:8000")]);
     let page = body(&home);
     assert_eq!(home.status, 200, "{page}");
@@ -182,9 +214,12 @@ fn project_templates_render() {
     assert!(page.contains("<title>__NAME__ · OnGo</title>"));
     assert!(page.contains("<h1>__NAME__</h1>"));
     assert!(page.contains("127.0.0.1:8000"));
-    assert!(page.contains("--paper: #f6f1e8;"));
+    assert!(page.contains("href=\"/static/css/style.css\""));
+    assert!(!page.contains("<style>"));
     assert!(!page.contains("{{ addr }}"));
     assert!(!page.contains("{% block"));
+    assert!(!page.contains("{% static"));
+    assert!(include_str!("../templates/style.css.in").contains("--paper: #f6f1e8;"));
 
     let about = body(&render(&req, "about.html", &[]));
     assert!(about.contains("<title>About · __NAME__ · OnGo</title>"));

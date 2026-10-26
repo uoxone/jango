@@ -40,7 +40,10 @@ pub fn urlpatterns() -> Router {
 
 ## Speed and shipping
 
-- Keep the server faster than Axum by staying small: no Tower, no Hyper, no middleware stack.
+- Keep the server faster than Axum and Actix by staying small: no Tower, no Hyper, no middleware stack.
+- A small release view must stay above 700,000 requests a second. A change that drops it under that number is not done.
+- Static files must not slow a normal route. That route does not touch the disk.
+- Measure a release build with 8 keep-alive connections and the requests pipelined. Do not install Axum or Actix to compare.
 - `ongo create project <name>`, `ongo run <name>`, and `ongo build <name>` are the commands.
 - `ongo build` must produce one executable. That file runs on a server with no Cargo and no rustc. It may link the system libc.
 - The `ongo` command on disk is `~/.cargo/bin/ongo`. Editing `core/src/main.rs` does nothing until `cargo install --path .`.

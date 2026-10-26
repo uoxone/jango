@@ -117,12 +117,14 @@ pub(crate) fn parse(buf: &[u8]) -> Parse<'_> {
     })
 }
 
+/// Index just past the headers, or `None` while `\r\n\r\n` has not arrived.
 fn find_header_end(buf: &[u8]) -> Option<usize> {
     buf.windows(4)
         .position(|mark| mark == b"\r\n\r\n")
         .map(|index| index + 4)
 }
 
+/// `GET /path HTTP/1.1` into method, target, and version.
 fn split_request_line(line: &str) -> Option<(&str, &str, &str)> {
     let mut parts = line.split(' ');
     let method = parts.next()?;
@@ -134,6 +136,7 @@ fn split_request_line(line: &str) -> Option<(&str, &str, &str)> {
     Some((method, target, version))
 }
 
+/// `/song/1?x=1` into the path and the query. The target must start with `/`.
 fn split_target(target: &str) -> Option<(&str, &str)> {
     if !target.starts_with('/') {
         return None;
@@ -142,6 +145,7 @@ fn split_target(target: &str) -> Option<(&str, &str)> {
     (!path.is_empty()).then_some((path, query))
 }
 
+/// `Name: value`. The name is non-empty ASCII with no spaces.
 fn split_header(line: &str) -> Option<(&str, &str)> {
     let (name, value) = line.split_once(':')?;
     if name.is_empty()
@@ -154,6 +158,7 @@ fn split_header(line: &str) -> Option<(&str, &str)> {
     Some((name, value.trim_matches(|c: char| c == ' ' || c == '\t')))
 }
 
+/// HTTP/1.1 stays open. `Connection: close` ends it, and HTTP/1.0 needs `keep-alive`.
 fn keep_alive(http11: bool, headers: &[(&str, &str)]) -> bool {
     let mut keep = http11;
     for (name, value) in headers {

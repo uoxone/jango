@@ -1,3 +1,7 @@
+//! Tests for the HTTP/1.1 parser.
+//!
+//! A full request, a buffer that is still short, and requests that must fail.
+
 use super::*;
 
 fn expect(raw: &[u8]) -> Parsed<'_> {

@@ -1,7 +1,8 @@
 //! Django-style templates.
 //!
 //! `{{ name }}` is escaped. `{% extends %}` and `{% block %}`
-//! share one page shell. The files live in `templates/`.
+//! share one page shell. `{% static %}` points at a file
+//! in `static/`. The HTML lives in `templates/`.
 
 #![forbid(unsafe_code)]
 
@@ -27,7 +28,8 @@ pub fn render(req: &Request, name: &str, context: &[(&str, &str)]) -> Response {
 ///
 /// `{{ name }}` and `{{ request.path }}` are HTML-escaped.
 /// `{% extends "page.html" %}` and `{% block content %}` work
-/// the same way as in Django.
+/// the same way as in Django. `{% static "css/style.css" %}`
+/// prints the public path of a file in the static folder.
 #[macro_export]
 macro_rules! render {
     ($req:expr, $name:expr) => {
@@ -53,6 +55,7 @@ enum Node<'a> {
     Text(&'a str),
     Var(&'a str),
     Block(&'a str, Vec<Node<'a>>),
+    Static(&'a str),
 }
 
 struct Cur<'a> {
@@ -70,6 +73,7 @@ impl<'a> Cur<'a> {
     }
 }
 
+/// Turn one template file into a parent name and a list of nodes.
 fn parse(source: &str) -> Result<Parsed<'_>, String> {
     let mut cur = Cur { src: source, i: 0 };
     let parent = leading_extends(&mut cur)?;
@@ -77,6 +81,7 @@ fn parse(source: &str) -> Result<Parsed<'_>, String> {
     Ok(Parsed { parent, nodes })
 }
 
+/// `{% extends %}` counts only as the first tag. Comments and blank lines may sit above it.
 fn leading_extends<'a>(cur: &mut Cur<'a>) -> Result<Option<&'a str>, String> {
     let start = cur.i;
     loop {
@@ -109,6 +114,7 @@ fn leading_extends<'a>(cur: &mut Cur<'a>) -> Result<Option<&'a str>, String> {
     Ok(None)
 }
 
+/// Read nodes until the file ends, or until `{% endblock %}` when `stop` is set.
 fn parse_nodes<'a>(cur: &mut Cur<'a>, stop: Option<&str>) -> Result<Vec<Node<'a>>, String> {
     let mut nodes = Vec::new();
     loop {
@@ -147,6 +153,7 @@ fn parse_nodes<'a>(cur: &mut Cur<'a>, stop: Option<&str>) -> Result<Vec<Node<'a>
                     let body = parse_nodes(cur, Some(name))?;
                     nodes.push(Node::Block(name, body));
                 }
+                Tag::Static(name) => nodes.push(Node::Static(name)),
                 Tag::Extends(_) => return Err("extends must be the first tag".into()),
             }
             continue;
@@ -160,6 +167,7 @@ fn parse_nodes<'a>(cur: &mut Cur<'a>, stop: Option<&str>) -> Result<Vec<Node<'a>
     }
 }
 
+/// Byte index of the next `{{`, `{%`, or `{#`.
 fn next_tag(text: &str) -> Option<usize> {
     let bytes = text.as_bytes();
     let mut i = 0;
@@ -172,6 +180,7 @@ fn next_tag(text: &str) -> Option<usize> {
     None
 }
 
+/// Text up to `closer`, then move past the closer.
 fn take_until<'a>(cur: &mut Cur<'a>, closer: &str) -> Result<&'a str, String> {
     let rest = cur.rest();
     let Some(at) = rest.find(closer) else {
@@ -186,8 +195,10 @@ enum Tag<'a> {
     Extends(&'a str),
     Block(&'a str),
     EndBlock(Option<&'a str>),
+    Static(&'a str),
 }
 
+/// One tag: `extends`, `block`, `endblock`, or `static`.
 fn parse_tag(body: &str) -> Result<Tag<'_>, String> {
     let body = body.trim();
     let (word, rest) = split_word(body);
@@ -209,10 +220,18 @@ fn parse_tag(body: &str) -> Result<Tag<'_>, String> {
             }
             Ok(Tag::EndBlock(Some(rest)))
         }
+        "static" => {
+            let name = quoted(rest)?;
+            if !static_path(name) {
+                return Err("invalid static path".into());
+            }
+            Ok(Tag::Static(name))
+        }
         other => Err(format!("unknown tag `{other}`")),
     }
 }
 
+/// A variable such as `name` or `request.path`.
 fn parse_var(body: &str) -> Result<&str, String> {
     let name = body.trim();
     if !valid_var(name) {
@@ -221,6 +240,7 @@ fn parse_var(body: &str) -> Result<&str, String> {
     Ok(name)
 }
 
+/// `name` or `name.field`. Both parts are identifiers.
 fn valid_var(name: &str) -> bool {
     let mut parts = name.split('.');
     let Some(root) = parts.next() else {
@@ -235,6 +255,20 @@ fn valid_var(name: &str) -> bool {
     }
 }
 
+/// A relative static path. No leading slash and no `..`.
+fn static_path(name: &str) -> bool {
+    !name.starts_with('/')
+        && !name.ends_with('/')
+        && name.split('/').all(|seg| {
+            !seg.is_empty()
+                && seg != "."
+                && seg != ".."
+                && !seg.contains('\\')
+                && !seg.contains('\0')
+        })
+}
+
+/// A letter or `_`, then letters, digits, or `_`.
 fn ident(name: &str) -> bool {
     let mut chars = name.chars();
     match chars.next() {
@@ -244,11 +278,13 @@ fn ident(name: &str) -> bool {
     chars.all(|ch| ch.is_ascii_alphanumeric() || ch == '_')
 }
 
+/// The first word, and everything after it.
 fn split_word(text: &str) -> (&str, &str) {
     text.split_once(|ch: char| ch.is_ascii_whitespace())
         .unwrap_or((text, ""))
 }
 
+/// A single- or double-quoted name, with no escapes inside.
 fn quoted(text: &str) -> Result<&str, String> {
     let bytes = text.as_bytes();
     if bytes.len() < 2 {
@@ -271,6 +307,7 @@ fn quoted(text: &str) -> Result<&str, String> {
 // The deepest child wins. A cycle is an error.
 // -----------------------------------------------
 
+/// Load the extends chain, apply the child's blocks, and return HTML.
 fn draw(
     name: &str,
     load: fn(&str) -> Option<&'static str>,
@@ -298,6 +335,11 @@ fn draw(
         }
     }
 
+    let static_url = if chain.iter().any(|parsed| uses_static(&parsed.nodes)) {
+        req.static_url.ok_or("static files are not configured")?
+    } else {
+        ""
+    };
     let base = chain.len() - 1;
     let mut blocks: Vec<(&str, Vec<Node<'_>>)> = Vec::new();
     for index in (0..base).rev() {
@@ -318,33 +360,56 @@ fn draw(
         .map(|(name, body)| (*name, body.as_slice()))
         .collect();
     let mut out = String::new();
-    write(&mut out, &chain[base].nodes, &chosen, req, context);
+    write(
+        &mut out,
+        &chain[base].nodes,
+        &chosen,
+        req,
+        context,
+        static_url,
+    );
     Ok(out)
 }
 
+/// True when any node, including inside a block, uses `{% static %}`.
+fn uses_static(nodes: &[Node<'_>]) -> bool {
+    nodes.iter().any(|node| match node {
+        Node::Static(_) => true,
+        Node::Block(_, body) => uses_static(body),
+        Node::Text(_) | Node::Var(_) => false,
+    })
+}
+
+/// Write HTML. A child block replaces the parent block of the same name.
 fn write(
     out: &mut String,
     nodes: &[Node<'_>],
     blocks: &[(&str, &[Node<'_>])],
     req: &Request,
     context: &[(&str, &str)],
+    static_url: &str,
 ) {
     for node in nodes {
         match node {
             Node::Text(text) => out.push_str(text),
             Node::Var(name) => push_escaped(out, lookup(name, req, context)),
+            Node::Static(name) => {
+                push_escaped(out, static_url);
+                push_escaped(out, name);
+            }
             Node::Block(name, body) => {
                 let inner = blocks
                     .iter()
                     .find(|(found, _)| found == name)
                     .map(|(_, body)| *body)
                     .unwrap_or(body);
-                write(out, inner, &[], req, context);
+                write(out, inner, &[], req, context, static_url);
             }
         }
     }
 }
 
+/// A context value, or `request.path` and `request.method`. A missing name is empty.
 fn lookup<'a>(name: &str, req: &'a Request<'a>, context: &'a [(&str, &str)]) -> &'a str {
     if let Some(field) = name.strip_prefix("request.") {
         return match field {
@@ -360,6 +425,7 @@ fn lookup<'a>(name: &str, req: &'a Request<'a>, context: &'a [(&str, &str)]) -> 
         .unwrap_or("")
 }
 
+/// Escape `& < > " '` so a value cannot become markup.
 fn push_escaped(out: &mut String, text: &str) {
     let mut start = 0;
     for (i, ch) in text.char_indices() {

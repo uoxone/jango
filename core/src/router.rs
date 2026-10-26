@@ -6,7 +6,10 @@
 
 #![forbid(unsafe_code)]
 
+use std::path::PathBuf;
+
 use crate::http::{Request, Response};
+use crate::staticfiles::StaticFiles;
 
 /// A view: one function from a request to a response.
 pub type View = for<'a> fn(&'a Request<'a>) -> Response;
@@ -24,21 +27,33 @@ pub struct Router {
     patterns: Vec<Pattern>,
     missing: View,
     templates: Option<fn(&str) -> Option<&'static str>>,
+    files: Option<StaticFiles>,
 }
 
 impl Router {
+    /// An empty router. Unknown paths return 404.
     pub fn new() -> Self {
         Self {
             map: StaticMap::default(),
             patterns: Vec::new(),
             missing: default_not_found,
             templates: None,
+            files: None,
         }
     }
 
     /// Use these embedded templates when a view calls `render!`.
     pub fn templates(mut self, load: fn(&str) -> Option<&'static str>) -> Self {
         self.templates = Some(load);
+        self
+    }
+
+    /// Serve files from `dir` at `url`.
+    ///
+    /// `url` looks like `/static/`. `static/css/style.css` is then
+    /// available at `/static/css/style.css`. `{% static %}` uses `url`.
+    pub fn staticfiles(mut self, url: &'static str, dir: impl Into<PathBuf>) -> Self {
+        self.files = Some(StaticFiles::new(url, dir));
         self
     }
 
@@ -66,8 +81,15 @@ impl Router {
         self
     }
 
+    /// Static files first, then an exact path, then `<name>` patterns.
     pub(crate) fn call(&self, req: &mut Request<'_>) -> Response {
         req.templates = self.templates;
+        req.static_url = self.files.as_ref().map(|files| files.url());
+        if let Some(files) = &self.files {
+            if let Some(response) = files.serve(req) {
+                return response;
+            }
+        }
         if let Some(view) = self.map.get(req.path) {
             return view(req);
         }
@@ -87,6 +109,7 @@ impl Default for Router {
     }
 }
 
+/// Plain text 404 used until the project sets its own.
 fn default_not_found(_req: &Request) -> Response {
     Response::status(404, "Not Found")
 }
@@ -155,6 +178,7 @@ impl StaticMap {
     }
 }
 
+/// FNV-1a. The path map uses this so a lookup does not allocate.
 fn hash(text: &str) -> usize {
     let mut hash = 0xcbf29ce484222325u64;
     for byte in text.as_bytes() {
@@ -182,6 +206,7 @@ struct Pattern {
 }
 
 impl Pattern {
+    /// `/song/<id>` becomes a literal segment and a capture named `id`.
     fn parse(path: &'static str, view: View) -> Self {
         let Some(rest) = path.strip_prefix('/') else {
             panic!("route `{path}` must start with /");
@@ -221,6 +246,7 @@ impl Pattern {
         }
     }
 
+    /// Fill `params` when `path` matches. The count is how many captures were stored.
     fn capture<'a>(&self, path: &'a str, params: &mut [(&'a str, &'a str); 8]) -> Option<u8> {
         let mut parts = path.split('/');
         if parts.next() != Some("") {

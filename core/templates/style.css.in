@@ -1,0 +1,241 @@
+/*
+  paper  calm background
+  ink    readable text
+  clay   warmth and action
+  moss   the server is alive
+*/
+
+:root {
+  --paper: #f6f1e8;
+  --ink: #231e1a;
+  --muted: #5c534a;
+  --line: #e3d8cb;
+  --card: #fffaf5;
+  --clay: #8f3820;
+  --clay-soft: #f6e6dc;
+  --moss: #146444;
+  --moss-soft: #e3f3ea;
+  --glow-clay: rgba(143, 56, 32, 0.09);
+  --glow-moss: rgba(20, 100, 68, 0.07);
+  color-scheme: light;
+  background: var(--paper);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #161310;
+    --ink: #f6f1e8;
+    --muted: #c2b8ad;
+    --line: #4a4138;
+    --card: #2a241f;
+    --clay: #f0b49a;
+    --clay-soft: #3a2c26;
+    --moss: #9ed4b8;
+    --moss-soft: #1c2b24;
+    --glow-clay: rgba(240, 180, 154, 0.08);
+    --glow-moss: rgba(158, 212, 184, 0.06);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  display: flex;
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font: 1.0625rem/1.6 ui-sans-serif, system-ui, "Segoe UI", Cantarell, "Noto Sans", sans-serif;
+  background:
+    radial-gradient(ellipse 70% 45% at 0% 0%, var(--glow-clay), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 100% 0%, var(--glow-moss), transparent 50%),
+    var(--paper);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: 0.25rem;
+  background: var(--clay);
+}
+
+a {
+  color: var(--clay);
+  text-underline-offset: 0.18em;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--clay);
+  outline-offset: 3px;
+  border-radius: 0.2rem;
+}
+
+code {
+  font-family: ui-monospace, "Cascadia Mono", "Liberation Mono", monospace;
+  font-size: 0.92em;
+}
+
+::selection {
+  background: var(--clay-soft);
+  color: var(--ink);
+}
+
+.wrap {
+  width: min(38rem, 100%);
+  margin: auto;
+  padding: 3.5rem 1.5rem 4.5rem;
+}
+
+.mast { margin: 0 0 2.4rem; }
+
+.mark {
+  display: inline-block;
+  padding-bottom: 0.28rem;
+  color: var(--ink);
+  font-family: "Iowan Old Style", Palatino, "Palatino Linotype", "Liberation Serif", "Noto Serif", Georgia, serif;
+  font-size: clamp(3.5rem, 11vw, 5.75rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.88;
+  text-decoration: none;
+  background-image: linear-gradient(var(--clay), var(--clay));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% 0.14rem;
+}
+
+.mark:hover { color: var(--clay); }
+
+.tag {
+  margin: 0.7rem 0 0;
+  color: var(--clay);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.kicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
+  margin: 0 0 1.35rem;
+  color: var(--moss);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.kicker a {
+  color: var(--moss);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.kicker a:hover { text-decoration: underline; }
+
+.dot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--moss);
+  box-shadow: 0 0 0 0.28rem var(--moss-soft);
+}
+
+.label {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.addr {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+h1 {
+  margin: 0;
+  font-family: "Iowan Old Style", Palatino, "Palatino Linotype", "Liberation Serif", "Noto Serif", Georgia, serif;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.lead {
+  margin: 1.15rem 0 0;
+  max-width: 34rem;
+  color: var(--muted);
+  font-size: 1.125rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.lead code,
+footer code {
+  padding: 0.08em 0.35em;
+  border-radius: 0.35rem;
+  background: var(--clay-soft);
+  color: var(--ink);
+}
+
+.routes {
+  margin: 2rem 0 0;
+  padding: 0.35rem;
+  list-style: none;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+}
+
+.routes li + li { box-shadow: inset 0 1px 0 var(--line); }
+
+.routes a,
+.routes .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: 0.7rem;
+}
+
+.routes a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.routes a:hover,
+.routes a:focus-visible {
+  background: var(--clay-soft);
+}
+
+.routes a:hover span,
+.routes a:focus-visible span { color: var(--clay); }
+
+.routes code {
+  flex: none;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.routes span { color: var(--muted); }
+
+footer {
+  margin-top: 1.75rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+footer p,
+.back { margin: 0; }
+
+.back { margin-top: 2rem; }
+
+@media (max-width: 32rem) {
+  .wrap { padding: 3rem 1.25rem; }
+}

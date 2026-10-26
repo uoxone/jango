@@ -19,6 +19,7 @@
     <a href="routes.html">Routes</a>
     <a href="views.html">Views</a>
     <a href="templates.html">Templates</a>
+    <a href="static.html">Static</a>
     <a href="ship.html">Ship</a>
     <a href="test.html">Tests</a>
   </nav>
@@ -49,15 +50,18 @@ ongo run</code></pre>
   src/settings.rs
   src/urls.rs
   src/views.rs
+  static/css/style.css
   templates/page.html
   templates/home.html
   templates/about.html</div>
-  <p><code>src/urls.rs</code> is the map. <code>src/views.rs</code> is the functions. <code>templates/</code> is the HTML. <code>build.rs</code> folds those templates into the binary, so the running server carries its pages with it.</p>
+  <p><code>src/urls.rs</code> is the map. <code>src/views.rs</code> is the functions. <code>templates/</code> is the HTML. <code>static/</code> holds CSS, pictures, video, and other files. <code>build.rs</code> folds the templates into the binary. The static folder stays on disk.</p>
 
   <h2>The address</h2>
   <p><code>src/settings.rs</code> holds the listen address:</p>
-  <pre><code>pub const ADDR: &amp;str = "127.0.0.1:8000";</code></pre>
-  <p><code>127.0.0.1</code> is this machine. When you run the binary on a server, change it to <code>0.0.0.0:8000</code>. Ongo listens on IPv4.</p>
+  <pre><code>pub const ADDR: &amp;str = "127.0.0.1:8000";
+pub const STATIC_URL: &amp;str = "/static/";
+pub const STATIC_DIR: &amp;str = "static";</code></pre>
+  <p><code>127.0.0.1</code> is this machine. When you run the binary on a server, change it to <code>0.0.0.0:8000</code>. Ongo listens on IPv4. <code>STATIC_URL</code> is the public prefix. <code>STATIC_DIR</code> is the folder. <code>static/css/style.css</code> is served at <code>/static/css/style.css</code>.</p>
 
   <h2>Useful commands</h2>
   <table>
@@ -65,7 +69,7 @@ ongo run</code></pre>
     <tr><td><code>ongo create project &lt;name&gt;</code></td><td>Writes a new project in <code>./&lt;name&gt;</code></td></tr>
     <tr><td><code>ongo run [name]</code></td><td>Compiles and serves a development build</td></tr>
     <tr><td><code>ongo run [name] --release</code></td><td>Serves the optimized build</td></tr>
-    <tr><td><code>ongo build [name]</code></td><td>Writes the file you upload</td></tr>
+    <tr><td><code>ongo build [name]</code></td><td>Writes <code>build/&lt;name&gt;</code> and <code>build/static</code></td></tr>
     <tr><td><code>ongo --help</code></td><td>Shows the commands</td></tr>
     <tr><td><code>ongo --version</code></td><td>Prints the version</td></tr>
   </table>

@@ -1,3 +1,5 @@
+//! Tests for the listen socket and the epoll event layout.
+
 use super::*;
 use std::net::Ipv4Addr;
 

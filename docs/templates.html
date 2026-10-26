@@ -19,6 +19,7 @@
     <a href="routes.html">Routes</a>
     <a href="views.html">Views</a>
     <a href="templates.html" aria-current="page">Templates</a>
+    <a href="static.html">Static</a>
     <a href="ship.html">Ship</a>
     <a href="test.html">Tests</a>
   </nav>
@@ -59,6 +60,9 @@ pub fn about(req: &amp;Request) -&gt; Response {
   <p>A child replaces blocks by name. The deepest child wins. Words in the child that sit outside a block are left out, so the shell stays in charge of the page. <code>{% endblock %}</code> may repeat the block name, or leave it out.</p>
   <p><code>build.rs</code> reads <code>templates/*.html</code> and embeds them. After a change, the next <code>ongo run</code> picks the new files up. The server you ship already contains the pages.</p>
 
+  <h2>A file in static/</h2>
+  <p><code>{% static "css/style.css" %}</code> prints the public path. With <code>STATIC_URL</code> set to <code>/static/</code>, the tag becomes <code>/static/css/style.css</code>. The bytes stay in the <code>static/</code> folder. <a href="static.html">Static</a> is where that folder is served.</p>
+
   <h2>When a template is unhappy</h2>
   <p>A problem becomes a 500 response with a short reason. The usual ones:</p>
   <table>
@@ -72,7 +76,7 @@ pub fn about(req: &amp;Request) -&gt; Response {
     <tr><td>The router has no templates loaded</td><td><code>not loaded</code></td></tr>
   </table>
 
-  <p class="next"><a href="ship.html">Ship →</a></p>
+  <p class="next"><a href="static.html">Static →</a></p>
 </main>
 <footer>
   <p>A small framework, written to stay small.</p>

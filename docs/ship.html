@@ -19,6 +19,7 @@
     <a href="routes.html">Routes</a>
     <a href="views.html">Views</a>
     <a href="templates.html">Templates</a>
+    <a href="static.html">Static</a>
     <a href="ship.html" aria-current="page">Ship</a>
     <a href="test.html">Tests</a>
   </nav>
@@ -30,9 +31,10 @@
 
   <h2>Build it</h2>
   <pre><code>ongo build nava</code></pre>
-  <p>The file is here:</p>
-  <pre><code>nava/target/release/nava</code></pre>
-  <p>Copy it to the server and run it:</p>
+  <p>The folder you upload is here:</p>
+  <pre><code>nava/build/nava
+nava/build/static</code></pre>
+  <p>Copy that folder to the server and run the program from inside it:</p>
   <pre><code>./nava</code></pre>
   <p>Cargo and rustc stay behind. The binary links to the system libc, which Linux already has. Build it on a machine whose glibc is close to the server's.</p>
 
@@ -40,6 +42,9 @@
   <p>Before you upload, set <code>ADDR</code> in <code>src/settings.rs</code>:</p>
   <pre><code>pub const ADDR: &amp;str = "0.0.0.0:8000";</code></pre>
   <p><code>127.0.0.1</code> answers only the machine it is running on. <code>0.0.0.0</code> answers the network. Use an IPv4 address such as <code>127.0.0.1:8000</code> or <code>0.0.0.0:8000</code>.</p>
+
+  <h2>Take the static folder with you</h2>
+  <p>HTML is inside the binary. <code>ongo build</code> copies <code>static/</code> next to the program, so pictures, video, and <code>style.css</code> are already in <code>build/static</code>. OnGo looks in the current directory first, then next to the program.</p>
 
   <h2>How it listens</h2>
   <p>OnGo speaks HTTP itself: <code>epoll</code>, one thread per core, and <code>SO_REUSEPORT</code>. A small response walks a short path.</p>

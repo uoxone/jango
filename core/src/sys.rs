@@ -3,8 +3,16 @@
 //! Unsafe stays in this file. Callers get `io::Result`
 //! and never touch a raw file descriptor helper.
 
+use std::ffi::{c_char, CString};
 use std::io::{self, ErrorKind};
 use std::net::SocketAddrV4;
+use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+
+// -----------------------------------------------
+// Kernel numbers
+// Values from the Linux headers. The names match
+// the C constants so a socket bug is easy to find.
+// -----------------------------------------------
 
 const AF_INET: i32 = 2;
 const SOCK_STREAM: i32 = 1;
@@ -23,6 +31,10 @@ const EPOLL_CTL_ADD: i32 = 1;
 const EPOLL_CTL_DEL: i32 = 2;
 const EPOLL_CLOEXEC: i32 = 524288;
 const POLLOUT: i16 = 4;
+const O_RDONLY: i32 = 0;
+const O_DIRECTORY: i32 = 1 << 16;
+const O_NOFOLLOW: i32 = 1 << 17;
+const O_CLOEXEC: i32 = 1 << 19;
 
 // Linux x86_64 packs this struct to 12 bytes.
 #[repr(C, packed)]
@@ -53,8 +65,9 @@ struct Iovec {
     iov_len: usize,
 }
 
+/// The libc calls. Every `unsafe` block in Ongo stays in this module.
 mod ffi {
-    use super::{EpollEvent, Iovec, PollFd, SockAddrIn};
+    use super::{c_char, EpollEvent, Iovec, PollFd, SockAddrIn};
 
     unsafe extern "C" {
         pub fn socket(domain: i32, ty: i32, protocol: i32) -> i32;
@@ -69,6 +82,7 @@ mod ffi {
         pub fn read(fd: i32, buf: *mut u8, count: usize) -> isize;
         pub fn writev(fd: i32, iov: *const Iovec, count: i32) -> isize;
         pub fn close(fd: i32) -> i32;
+        pub fn openat(dirfd: i32, path: *const c_char, flags: i32) -> i32;
     }
 }
 
@@ -78,6 +92,7 @@ mod ffi {
 // and accept without a shared lock.
 // -----------------------------------------------
 
+/// One non-blocking IPv4 socket. Every core can bind the same port.
 pub(crate) fn listen_socket(addr: SocketAddrV4) -> io::Result<i32> {
     let fd = unsafe { ffi::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0) };
     if fd < 0 {
@@ -120,6 +135,7 @@ fn set_int(fd: i32, level: i32, name: i32, value: i32) -> io::Result<()> {
     }
 }
 
+/// Turn off Nagle so a small response is not held back.
 pub(crate) fn nodelay(fd: i32) -> io::Result<()> {
     set_int(fd, IPPROTO_TCP, TCP_NODELAY, 1)
 }
@@ -131,10 +147,14 @@ pub(crate) fn nodelay(fd: i32) -> io::Result<()> {
 // only when the kernel buffer is full.
 // -----------------------------------------------
 
+/// epoll data for the listen socket. Connection ids are smaller.
 pub(crate) const LISTEN: u64 = u64::MAX;
+/// Watch for bytes to read, and for the peer closing.
 pub(crate) const INTEREST: u32 = EPOLLIN | EPOLLRDHUP;
+/// The peer is gone. If no data remains, the connection can close.
 pub(crate) const PEER_GONE: u32 = EPOLLERR | EPOLLHUP | EPOLLRDHUP;
 
+/// Accept one connection. `WouldBlock` means the queue is empty.
 pub(crate) fn accept(fd: i32) -> io::Result<i32> {
     loop {
         let got = unsafe {
@@ -155,6 +175,7 @@ pub(crate) fn accept(fd: i32) -> io::Result<i32> {
     }
 }
 
+/// A new epoll fd. It is not inherited across `exec`.
 pub(crate) fn epoll_create() -> io::Result<i32> {
     let fd = unsafe { ffi::epoll_create1(EPOLL_CLOEXEC) };
     if fd >= 0 {
@@ -164,6 +185,7 @@ pub(crate) fn epoll_create() -> io::Result<i32> {
     }
 }
 
+/// Watch `fd`. `data` is what `epoll_wait` returns for it.
 pub(crate) fn epoll_add(ep: i32, fd: i32, data: u64) -> io::Result<()> {
     let mut event = EpollEvent {
         events: INTEREST,
@@ -172,6 +194,7 @@ pub(crate) fn epoll_add(ep: i32, fd: i32, data: u64) -> io::Result<()> {
     ctl(ep, EPOLL_CTL_ADD, fd, &mut event)
 }
 
+/// Stop watching `fd` before it is closed.
 pub(crate) fn epoll_del(ep: i32, fd: i32) -> io::Result<()> {
     let mut event = EpollEvent { events: 0, data: 0 };
     ctl(ep, EPOLL_CTL_DEL, fd, &mut event)
@@ -186,6 +209,7 @@ fn ctl(ep: i32, op: i32, fd: i32, event: &mut EpollEvent) -> io::Result<()> {
     }
 }
 
+/// Block until a socket is ready. A signal retries the wait.
 pub(crate) fn epoll_wait(ep: i32, events: &mut [EpollEvent]) -> io::Result<usize> {
     loop {
         let n = unsafe { ffi::epoll_wait(ep, events.as_mut_ptr(), events.len() as i32, -1) };
@@ -222,6 +246,7 @@ pub(crate) fn read_append(fd: i32, buf: &mut Vec<u8>) -> io::Result<usize> {
     }
 }
 
+/// Write two slices as one message. Waits if the kernel buffer is full.
 pub(crate) fn write_two(fd: i32, mut first: &[u8], mut second: &[u8]) -> io::Result<()> {
     while !first.is_empty() || !second.is_empty() {
         let iov = [
@@ -266,6 +291,7 @@ pub(crate) fn write_two(fd: i32, mut first: &[u8], mut second: &[u8]) -> io::Res
     Ok(())
 }
 
+/// Wait until the socket can take more bytes, at most five seconds.
 fn wait_write(fd: i32) -> io::Result<()> {
     let mut pollfd = PollFd {
         fd,
@@ -287,6 +313,31 @@ fn wait_write(fd: i32) -> io::Result<()> {
     }
 }
 
+/// Open one path piece inside `dir`. A symlink is an error, not a target.
+pub(crate) fn open_at(dir: &OwnedFd, name: &str, directory: bool) -> io::Result<OwnedFd> {
+    if name.is_empty() || name == "." || name == ".." || name.contains('/') {
+        return Err(io::Error::new(ErrorKind::InvalidInput, "static name"));
+    }
+    let name =
+        CString::new(name).map_err(|_| io::Error::new(ErrorKind::InvalidInput, "static name"))?;
+    let mut flags = O_RDONLY | O_CLOEXEC | O_NOFOLLOW;
+    if directory {
+        flags |= O_DIRECTORY;
+    }
+    let fd = unsafe { ffi::openat(dir.as_raw_fd(), name.as_ptr(), flags) };
+    if fd < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    // SAFETY: `openat` returned a new descriptor. `OwnedFd` closes it.
+    Ok(unsafe { OwnedFd::from_raw_fd(fd) })
+}
+
+/// `true` when the kernel refused to follow a symlink (`ELOOP`).
+pub(crate) fn followed_link(err: &io::Error) -> bool {
+    err.raw_os_error() == Some(40)
+}
+
+/// Close a file descriptor.
 pub(crate) fn close_fd(fd: i32) -> io::Result<()> {
     let rc = unsafe { ffi::close(fd) };
     if rc == 0 {

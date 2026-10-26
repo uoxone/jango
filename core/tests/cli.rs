@@ -1,3 +1,7 @@
+//! Tests for the `ongo` command.
+//!
+//! Project names, `ongo create`, and the clean `build/` folder.
+
 use super::*;
 
 #[test]
@@ -93,9 +97,19 @@ fn create_writes_urls_and_depends_only_on_ongo() {
     assert!(about.contains("{{ request.path }}"));
     assert!(about.contains("About · nava · OnGo"));
     assert!(settings.contains("127.0.0.1:8000"));
-    assert!(fs::read_to_string(root.join("nava/.gitignore"))
+    assert!(settings.contains("STATIC_URL"));
+    assert!(settings.contains("\"/static/\""));
+    assert!(settings.contains("STATIC_DIR"));
+    assert!(main_rs.contains("staticfiles"));
+    let page = fs::read_to_string(root.join("nava/templates/page.html")).unwrap();
+    assert!(page.contains("{% static \"css/style.css\" %}"));
+    assert!(!page.contains("<style>"));
+    assert!(fs::read_to_string(root.join("nava/static/css/style.css"))
         .unwrap()
-        .contains("target"));
+        .contains("--paper:"));
+    let ignore = fs::read_to_string(root.join("nava/.gitignore")).unwrap();
+    assert!(ignore.contains("target"));
+    assert!(ignore.contains("build"));
     assert!(fs::read_to_string(root.join("nava/build.rs"))
         .unwrap()
         .contains("templates"));
@@ -103,4 +117,42 @@ fn create_writes_urls_and_depends_only_on_ongo() {
     assert!(cargo.contains("ongo = { path ="));
     assert!(!cargo.contains("__ONGO__"));
     let _ = fs::remove_dir_all(&root);
+}
+
+#[test]
+fn publish_writes_a_clean_folder() {
+    let dir = std::env::temp_dir().join(format!("ongo-build-{}", process::id()));
+    let _ = fs::remove_dir_all(&dir);
+    fs::create_dir_all(dir.join("target/release/deps")).unwrap();
+    fs::create_dir_all(dir.join("static/css")).unwrap();
+    fs::write(dir.join("target/release/nava"), b"bin").unwrap();
+    fs::write(dir.join("target/release/deps/nava-abc"), b"junk").unwrap();
+    fs::write(dir.join("static/css/style.css"), b"body{}").unwrap();
+    fs::write(dir.join("static/cover.jpg"), b"jpg").unwrap();
+    fs::create_dir_all(dir.join("build")).unwrap();
+    fs::write(dir.join("build/old.txt"), b"stale").unwrap();
+
+    publish(&dir, "nava").unwrap();
+    assert_eq!(fs::read(dir.join("build/nava")).unwrap(), b"bin");
+    assert_eq!(
+        fs::read(dir.join("build/static/css/style.css")).unwrap(),
+        b"body{}"
+    );
+    assert_eq!(
+        fs::read(dir.join("build/static/cover.jpg")).unwrap(),
+        b"jpg"
+    );
+    assert!(!dir.join("build/old.txt").exists());
+    assert!(!dir.join("build/deps").exists());
+    assert!(dir.join("target/release/deps/nava-abc").is_file());
+
+    fs::remove_dir_all(dir.join("static")).unwrap();
+    fs::write(dir.join("static"), b"not-a-folder").unwrap();
+    publish(&dir, "nava").unwrap();
+    assert_eq!(fs::read(dir.join("build/nava")).unwrap(), b"bin");
+    assert!(!dir.join("build/static").exists());
+
+    fs::remove_file(dir.join("target/release/nava")).unwrap();
+    assert!(publish(&dir, "nava").unwrap_err().contains("no binary"));
+    let _ = fs::remove_dir_all(&dir);
 }

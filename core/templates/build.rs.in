@@ -2,6 +2,7 @@
 // Templates
 // Embeds templates/*.html into the binary.
 // The server does not need these files on disk.
+// static/ stays a folder and is served from disk.
 // -----------------------------------------------
 
 use std::fs;

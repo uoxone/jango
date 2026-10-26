@@ -1,7 +1,8 @@
 //! Ongo is a small Django-style web framework.
 //!
 //! A view is a function. Paths live in one router.
-//! Templates use `{{ name }}`, `{% block %}`, and `{% extends %}`.
+//! Templates use `{{ name }}`, `{% block %}`, `{% extends %}`, and `{% static %}`.
+//! Files in `static/` are served at `STATIC_URL`.
 //! [`run`](crate::run) starts the server.
 
 // -----------------------------------------------
@@ -14,6 +15,7 @@ mod http;
 mod parse;
 mod router;
 mod server;
+mod staticfiles;
 mod sys;
 mod template;
 
@@ -21,6 +23,7 @@ pub use http::{Method, Request, Response};
 pub use router::Router;
 pub use server::run;
 
+// `render!` calls this. Hidden so views use the macro.
 #[doc(hidden)]
 pub use template::render as __render;
 

@@ -1,3 +1,5 @@
+//! Tests for methods, queries, headers, parameters, and responses.
+
 use super::*;
 
 fn req<'a>(
@@ -108,8 +110,10 @@ fn responses_and_reasons() {
         (302, "Found"),
         (400, "Bad Request"),
         (404, "Not Found"),
+        (206, "Partial Content"),
         (405, "Method Not Allowed"),
         (413, "Payload Too Large"),
+        (416, "Range Not Satisfiable"),
         (500, "Internal Server Error"),
         (501, "Not Implemented"),
         (418, "Response"),

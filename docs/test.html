@@ -19,6 +19,7 @@
     <a href="routes.html">Routes</a>
     <a href="views.html">Views</a>
     <a href="templates.html">Templates</a>
+    <a href="static.html">Static</a>
     <a href="ship.html">Ship</a>
     <a href="test.html" aria-current="page">Tests</a>
   </nav>
@@ -44,6 +45,7 @@ cargo test -- --list       # names only</code></pre>
   parse.rs
   router.rs
   template.rs
+  static.rs
   server.rs
   sys.rs
   routes.rs
@@ -56,7 +58,8 @@ cargo test -- --list       # names only</code></pre>
     <tr><td><code>parse.rs</code></td><td>Reading an HTTP request, including a body and keep-alive</td></tr>
     <tr><td><code>router.rs</code></td><td>Exact paths, <code>&lt;id&gt;</code>, and routes that should be refused</td></tr>
     <tr><td><code>routes.rs</code></td><td>The <code>routes!</code> macro</td></tr>
-    <tr><td><code>template.rs</code></td><td><code>{{ }}</code>, blocks, <code>extends</code>, and the sample pages</td></tr>
+    <tr><td><code>template.rs</code></td><td><code>{{ }}</code>, blocks, <code>extends</code>, <code>static</code>, and the sample pages</td></tr>
+    <tr><td><code>static.rs</code></td><td>The static folder, content types, and paths that stay refused</td></tr>
     <tr><td><code>server.rs</code></td><td>Response headers, and a real server on <code>127.0.0.1</code></td></tr>
     <tr><td><code>sys.rs</code></td><td>The listen socket and the epoll layout</td></tr>
     <tr><td><code>cli.rs</code></td><td><code>ongo create project</code> and the command checks</td></tr>

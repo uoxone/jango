@@ -12,6 +12,8 @@ mod templates {
 // urls::urlpatterns() is the route table.
 // -----------------------------------------------
 fn main() {
-    let app = urls::urlpatterns().templates(templates::load);
+    let app = urls::urlpatterns()
+        .templates(templates::load)
+        .staticfiles(settings::STATIC_URL, settings::STATIC_DIR);
     ongo::run(settings::ADDR, app).expect("ongo");
 }

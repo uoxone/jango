@@ -11,8 +11,8 @@ ongo = { path = "__ONGO__" }
 
 # -----------------------------------------------
 # Release
-# One optimized binary. Copy it to the server
-# and run it there. Cargo stays on your machine.
+# One optimized binary. `ongo build` copies it,
+# with static/, into build/. Cargo stays here.
 # -----------------------------------------------
 [profile.release]
 lto = "fat"

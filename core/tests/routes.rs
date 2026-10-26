@@ -1,3 +1,5 @@
+//! Tests for the `routes!` macro.
+
 use super::*;
 
 fn home(req: &Request) -> Response {

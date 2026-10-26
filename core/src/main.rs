@@ -7,6 +7,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{self, Command};
 
+// -----------------------------------------------
+// Project files
+// Each constant is one file `ongo create` writes.
+// `__NAME__` becomes the project name.
+// -----------------------------------------------
+
 const CARGO_TMPL: &str = include_str!("../templates/Cargo.toml.in");
 const BUILD_TMPL: &str = include_str!("../templates/build.rs.in");
 const MAIN_TMPL: &str = include_str!("../templates/main.rs.in");
@@ -17,7 +23,9 @@ const PAGE_TMPL: &str = include_str!("../templates/page.html.in");
 const HOME_TMPL: &str = include_str!("../templates/home.html.in");
 const ABOUT_TMPL: &str = include_str!("../templates/about.html.in");
 const GITIGNORE_TMPL: &str = include_str!("../templates/gitignore.in");
+const STYLE_TMPL: &str = include_str!("../templates/style.css.in");
 
+/// Run one command. A problem is printed and the process exits 1.
 fn main() {
     let code = match cli() {
         Ok(()) => 0,
@@ -36,6 +44,7 @@ fn main() {
 //   ongo build [name]
 // -----------------------------------------------
 
+/// Read the arguments and dispatch `create`, `run`, or `build`.
 fn cli() -> Result<(), String> {
     let mut args: Vec<String> = env::args().skip(1).collect();
     let release = take_flag(&mut args, "--release");
@@ -55,10 +64,12 @@ fn cli() -> Result<(), String> {
     }
 }
 
+/// Print the command list.
 fn print_help() {
     println!("{}", help_text());
 }
 
+/// The text for `ongo --help`.
 fn help_text() -> &'static str {
     "\
 ongo — a small Django-style web framework
@@ -66,9 +77,9 @@ ongo — a small Django-style web framework
 Usage:
   ongo create project <name>   create ./<name>
   ongo run [name] [--release]  run the project (dev build by default)
-  ongo build [name]            release binary you can upload and run
+  ongo build [name]            binary and static/ in build/
 
-The file from `ongo build` is a normal program.
+`ongo build` writes build/<name> and build/static.
 The server does not need cargo or rustc.
 
 Examples:
@@ -77,6 +88,7 @@ Examples:
   ongo build nava"
 }
 
+/// Remove `flag` from the arguments. True when it was present.
 fn take_flag(args: &mut Vec<String>, flag: &str) -> bool {
     if let Some(index) = args.iter().position(|arg| arg == flag) {
         args.remove(index);
@@ -90,8 +102,10 @@ fn take_flag(args: &mut Vec<String>, flag: &str) -> bool {
 // create project
 // Writes a tiny app that depends only on this
 // ongo crate. templates/ is the first page.
+// static/ holds CSS, pictures, video, and files.
 // -----------------------------------------------
 
+/// Write a new project directory. The name must look like `nava`.
 fn create(args: &[String]) -> Result<(), String> {
     let Some("project") = args.get(1).map(String::as_str) else {
         return Err("usage: ongo create project <name>".into());
@@ -115,6 +129,7 @@ fn create(args: &[String]) -> Result<(), String> {
 
     fs::create_dir_all(dir.join("src")).map_err(|err| err.to_string())?;
     fs::create_dir_all(dir.join("templates")).map_err(|err| err.to_string())?;
+    fs::create_dir_all(dir.join("static/css")).map_err(|err| err.to_string())?;
     write(&dir.join("Cargo.toml"), &cargo)?;
     write(&dir.join("build.rs"), BUILD_TMPL)?;
     write(&dir.join("src/main.rs"), MAIN_TMPL)?;
@@ -124,21 +139,25 @@ fn create(args: &[String]) -> Result<(), String> {
     write(&dir.join("templates/page.html"), PAGE_TMPL)?;
     write(&dir.join("templates/home.html"), &fill(HOME_TMPL, name))?;
     write(&dir.join("templates/about.html"), &fill(ABOUT_TMPL, name))?;
+    write(&dir.join("static/css/style.css"), STYLE_TMPL)?;
     write(&dir.join(".gitignore"), GITIGNORE_TMPL)?;
 
     println!("created {name}");
     println!("  {name}/src/urls.rs");
     println!("  {name}/src/views.rs");
     println!("  {name}/templates/home.html");
+    println!("  {name}/static/css/style.css");
     println!();
     println!("next:  ongo run {name}");
     Ok(())
 }
 
+/// Replace `__NAME__` in a template file.
 fn fill(text: &str, name: &str) -> String {
     text.replace("__NAME__", name)
 }
 
+/// A letter, then letters, digits, `_`, or `-`.
 fn valid_name(name: &str) -> bool {
     let mut chars = name.chars();
     match chars.next() {
@@ -148,6 +167,7 @@ fn valid_name(name: &str) -> bool {
     chars.all(|ch| ch.is_ascii_alphanumeric() || ch == '_' || ch == '-')
 }
 
+/// This crate's path, written into the new project's `Cargo.toml`.
 fn ongo_lib_path() -> Result<String, String> {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let path = path.canonicalize().unwrap_or(path);
@@ -158,6 +178,7 @@ fn ongo_lib_path() -> Result<String, String> {
     Ok(text)
 }
 
+/// Write one project file. The error includes the path.
 fn write(path: &Path, contents: &str) -> Result<(), String> {
     fs::write(path, contents).map_err(|err| format!("write {}: {err}", path.display()))
 }
@@ -165,10 +186,11 @@ fn write(path: &Path, contents: &str) -> Result<(), String> {
 // -----------------------------------------------
 // run and build
 // `run` compiles fast so you can edit views.
-// `build` writes target/release/<name>. Upload
-// that file. It does not need cargo on the server.
+// `build` leaves cargo's target/ alone and writes
+// a clean build/ folder: the binary and static/.
 // -----------------------------------------------
 
+/// `cargo run` in the project. `--release` builds the optimized binary.
 fn run_project(args: &[String], release: bool) -> Result<(), String> {
     let dir = project_dir(args.get(1).map(String::as_str))?;
     if args.len() > 2 {
@@ -182,6 +204,7 @@ fn run_project(args: &[String], release: bool) -> Result<(), String> {
     wait(cmd)
 }
 
+/// Release-build the project, then copy the program and `static/` into `build/`.
 fn build_project(args: &[String]) -> Result<(), String> {
     let dir = project_dir(args.get(1).map(String::as_str))?;
     if args.len() > 2 {
@@ -191,14 +214,47 @@ fn build_project(args: &[String]) -> Result<(), String> {
     cmd.arg("build").arg("--release").current_dir(&dir);
     wait(cmd)?;
     let name = package_name(&dir.join("Cargo.toml"))?;
-    let binary = dir.join("target/release").join(&name);
+    publish(&dir, &name)
+}
+
+/// Replace `build/` with the release binary and, when present, `static/`.
+fn publish(dir: &Path, name: &str) -> Result<(), String> {
+    let source = dir.join("target/release").join(name);
+    if !source.is_file() {
+        return Err(format!("no binary at {}", source.display()));
+    }
+    let out = dir.join("build");
+    if out.is_dir() {
+        fs::remove_dir_all(&out).map_err(|err| err.to_string())?;
+    }
+    fs::create_dir_all(&out).map_err(|err| err.to_string())?;
+    fs::copy(&source, out.join(name)).map_err(|err| err.to_string())?;
+    let static_dir = dir.join("static");
+    if static_dir.is_dir() {
+        copy_dir(&static_dir, &out.join("static"))?;
+    }
     println!();
-    println!("binary  {}", binary.display());
-    println!("upload this file and run it");
-    println!("the server does not need cargo or rustc");
+    println!("build  {}", out.display());
     Ok(())
 }
 
+/// Copy a directory, including its subdirectories.
+fn copy_dir(from: &Path, to: &Path) -> Result<(), String> {
+    fs::create_dir_all(to).map_err(|err| err.to_string())?;
+    for entry in fs::read_dir(from).map_err(|err| err.to_string())? {
+        let entry = entry.map_err(|err| err.to_string())?;
+        let src = entry.path();
+        let dest = to.join(entry.file_name());
+        if src.is_dir() {
+            copy_dir(&src, &dest)?;
+        } else {
+            fs::copy(src, dest).map_err(|err| err.to_string())?;
+        }
+    }
+    Ok(())
+}
+
+/// The named project, or the current directory when the name is omitted.
 fn project_dir(name: Option<&str>) -> Result<PathBuf, String> {
     let dir = match name {
         Some(name) => PathBuf::from(name),
@@ -210,6 +266,7 @@ fn project_dir(name: Option<&str>) -> Result<PathBuf, String> {
     Ok(dir)
 }
 
+/// The `name` field in `Cargo.toml`. That is the binary's file name.
 fn package_name(cargo_toml: &Path) -> Result<String, String> {
     let text = fs::read_to_string(cargo_toml).map_err(|err| err.to_string())?;
     for line in text.lines() {
@@ -227,6 +284,7 @@ fn package_name(cargo_toml: &Path) -> Result<String, String> {
     Err("could not find package name in Cargo.toml".into())
 }
 
+/// Run `cargo`. A missing `cargo` or a failed build becomes an error string.
 fn wait(mut cmd: Command) -> Result<(), String> {
     let status = cmd.status().map_err(|err| {
         format!("could not run cargo ({err}). Install Rust on this machine to build.")

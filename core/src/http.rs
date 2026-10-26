@@ -3,6 +3,7 @@
 #![forbid(unsafe_code)]
 
 use std::fmt;
+use std::path::PathBuf;
 
 // -----------------------------------------------
 // Method
@@ -23,6 +24,7 @@ pub enum Method {
 }
 
 impl Method {
+    /// The method token from the request line, such as `"GET"`.
     pub(crate) fn parse(text: &str) -> Option<Self> {
         Some(match text {
             "GET" => Self::Get,
@@ -72,9 +74,13 @@ pub struct Request<'a> {
     pub(crate) query: &'a str,
     pub(crate) headers: &'a [(&'a str, &'a str)],
     pub(crate) body: &'a [u8],
+    /// Values captured by `<name>` segments. At most eight.
     pub(crate) params: [(&'a str, &'a str); 8],
     pub(crate) nparams: u8,
+    /// Embedded templates for `render!`. The router sets this.
     pub(crate) templates: Option<fn(&str) -> Option<&'static str>>,
+    /// `STATIC_URL`, such as `/static/`. `{% static %}` uses it.
+    pub(crate) static_url: Option<&'static str>,
 }
 
 impl<'a> Request<'a> {
@@ -94,13 +100,16 @@ impl<'a> Request<'a> {
             params: [("", ""); 8],
             nparams: 0,
             templates: None,
+            static_url: None,
         }
     }
 
+    /// `GET`, `POST`, and the other verbs.
     pub fn method(&self) -> Method {
         self.method
     }
 
+    /// The path without the query, such as `/song/12`.
     pub fn path(&self) -> &'a str {
         self.path
     }
@@ -132,6 +141,7 @@ impl<'a> Request<'a> {
             .map(|(_, value)| *value)
     }
 
+    /// Raw body bytes. Empty when the request sent no body.
     pub fn body(&self) -> &'a [u8] {
         self.body
     }
@@ -158,6 +168,29 @@ impl fmt::Debug for Request<'_> {
 // cover the common cases so views stay one line.
 // -----------------------------------------------
 
+/// A file to stream after the headers.
+///
+/// `start` is the first byte. `len` is how many follow.
+/// `opened` is set when the file was already checked and opened.
+#[derive(Debug)]
+pub(crate) struct FileBody {
+    pub path: PathBuf,
+    pub start: u64,
+    pub len: u64,
+    pub opened: Option<std::fs::File>,
+}
+
+impl Clone for FileBody {
+    fn clone(&self) -> Self {
+        Self {
+            path: self.path.clone(),
+            start: self.start,
+            len: self.len,
+            opened: self.opened.as_ref().and_then(|file| file.try_clone().ok()),
+        }
+    }
+}
+
 /// HTTP response returned by a view.
 #[derive(Clone, Debug)]
 #[must_use]
@@ -165,7 +198,14 @@ pub struct Response {
     pub(crate) status: u16,
     pub(crate) content_type: &'static str,
     pub(crate) body: Vec<u8>,
+    /// Set by `redirect`. Sent as the `Location` header.
     pub(crate) location: Option<String>,
+    /// Set for a static file. The server streams this instead of `body`.
+    pub(crate) file: Option<FileBody>,
+    /// `bytes 0-99/400` on a partial response, or `bytes */400` on 416.
+    pub(crate) content_range: Option<String>,
+    /// Sends `Accept-Ranges: bytes` for static files.
+    pub(crate) accept_ranges: bool,
 }
 
 impl Response {
@@ -179,25 +219,41 @@ impl Response {
             content_type,
             body: body.into().into_bytes(),
             location: None,
+            file: None,
+            content_range: None,
+            accept_ranges: false,
         }
     }
 
+    /// Bytes the client should receive: the file slice, or the memory body.
+    pub(crate) fn output_len(&self) -> u64 {
+        self.file
+            .as_ref()
+            .map(|file| file.len)
+            .unwrap_or(self.body.len() as u64)
+    }
+
+    /// 200, `text/plain; charset=utf-8`.
     pub fn text(body: impl Into<String>) -> Self {
         Self::make(200, "text/plain; charset=utf-8", body)
     }
 
+    /// 200, `text/html; charset=utf-8`.
     pub fn html(body: impl Into<String>) -> Self {
         Self::make(200, "text/html; charset=utf-8", body)
     }
 
+    /// 200, `application/json; charset=utf-8`.
     pub fn json(body: impl Into<String>) -> Self {
         Self::make(200, "application/json; charset=utf-8", body)
     }
 
+    /// Any status from 100 through 599, as plain text.
     pub fn status(status: u16, body: impl Into<String>) -> Self {
         Self::make(status, "text/plain; charset=utf-8", body)
     }
 
+    /// 302 with a `Location` header and an empty body.
     pub fn redirect(location: impl Into<String>) -> Self {
         let mut res = Self::make(302, "text/plain; charset=utf-8", "");
         res.location = Some(location.into());
@@ -205,23 +261,27 @@ impl Response {
     }
 }
 
+/// Reason phrase for the status line. An unknown code uses `"Response"`.
 pub(crate) fn reason(status: u16) -> &'static str {
     match status {
         200 => "OK",
         201 => "Created",
         204 => "No Content",
+        206 => "Partial Content",
         301 => "Moved Permanently",
         302 => "Found",
         400 => "Bad Request",
         404 => "Not Found",
         405 => "Method Not Allowed",
         413 => "Payload Too Large",
+        416 => "Range Not Satisfiable",
         500 => "Internal Server Error",
         501 => "Not Implemented",
         _ => "Response",
     }
 }
 
+/// ASCII case-insensitive equality. Header names use this.
 pub(crate) fn eq_ignore(left: &str, right: &str) -> bool {
     left.len() == right.len()
         && left

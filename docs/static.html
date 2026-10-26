@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
+<title>Static · Ongo</title>
+<meta name="description" content="OnGo serves CSS, pictures, video, and other files from the static folder at STATIC_URL.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="frame">
+<header class="top">
+  <a class="brand" href="index.html">OnGo</a>
+  <nav>
+    <a href="start.html">Start</a>
+    <a href="routes.html">Routes</a>
+    <a href="views.html">Views</a>
+    <a href="templates.html">Templates</a>
+    <a href="static.html" aria-current="page">Static</a>
+    <a href="ship.html">Ship</a>
+    <a href="test.html">Tests</a>
+  </nav>
+</header>
+<main id="content">
+  <p class="kicker">Static</p>
+  <h1>One folder, one URL</h1>
+  <p class="lede">CSS, pictures, video, and other files live in <code>static/</code>. The browser asks for them at <code>STATIC_URL</code>.</p>
+
+  <h2>Settings</h2>
+  <pre><code>pub const STATIC_URL: &amp;str = "/static/";
+pub const STATIC_DIR: &amp;str = "static";</code></pre>
+  <p><code>main.rs</code> hands both to the router:</p>
+  <pre><code>let app = urls::urlpatterns()
+    .templates(templates::load)
+    .staticfiles(settings::STATIC_URL, settings::STATIC_DIR);</code></pre>
+  <p><code>static/css/style.css</code> is then <code>/static/css/style.css</code>. A picture is <code>static/img/cover.jpg</code>. A video is <code>static/video/clip.mp4</code>. The URL can be <code>/media/</code> if you would rather call it that. It starts and ends with <code>/</code>.</p>
+
+  <h2>Inside a page</h2>
+  <pre><code>&lt;link rel="stylesheet" href="{% static "css/style.css" %}"&gt;
+&lt;img src="{% static "img/cover.jpg" %}" alt="Cover"&gt;</code></pre>
+  <p>The tag joins <code>STATIC_URL</code> and the path. The path is relative: <code>css/style.css</code>, not <code>/css/style.css</code> and not <code>../secret</code>. Quotes may be single or double. The value is escaped, the same way as <code>{{ name }}</code>.</p>
+  <div class="tree">static/
+  css/style.css
+  img/cover.jpg
+  video/clip.mp4</div>
+  <p>A new project already has <code>static/css/style.css</code>. The sample page links it. Edit the file and refresh. A static file is read from disk, so it does not need another build. Templates still do.</p>
+
+  <h2>What comes back</h2>
+  <p><code>GET</code> and <code>HEAD</code> serve the file. Another method is 405. A missing file, a directory, or a path that tries to leave the folder is 404. That 404 does not fall through to a view, and it does not use your <code>not_found</code> page. A path outside the prefix, such as <code>/about</code>, is still a normal route.</p>
+  <p>The extension chooses the type: <code>.css</code>, <code>.js</code>, pictures (<code>.png</code>, <code>.jpg</code>, <code>.gif</code>, <code>.webp</code>, <code>.svg</code>), video (<code>.mp4</code>, <code>.webm</code>), audio, and fonts. Anything else is sent as raw bytes, so an unknown file still downloads. A video may ask for a byte range. OnGo answers with the slice.</p>
+  <table>
+    <tr><th>Situation</th><th>What you see</th></tr>
+    <tr><td>The file is there</td><td>200, and the bytes</td></tr>
+    <tr><td>The file is missing, or the path leaves the folder</td><td>404</td></tr>
+    <tr><td>The method is not <code>GET</code> or <code>HEAD</code></td><td>405</td></tr>
+    <tr><td>The range cannot be satisfied</td><td>416</td></tr>
+    <tr><td><code>{% static %}</code> and static files are not configured</td><td><code>not configured</code></td></tr>
+    <tr><td>The static path is <code>..</code> or starts with <code>/</code></td><td><code>invalid static path</code></td></tr>
+  </table>
+
+  <h2>On the server</h2>
+  <p><code>ongo build</code> copies <code>static/</code> to <code>build/static</code>, beside the program. Run the program from that folder. OnGo looks in the current directory first, then next to the program. Set <code>STATIC_DIR</code> to an absolute path when the folder lives somewhere else.</p>
+
+  <p class="next"><a href="ship.html">Ship →</a></p>
+</main>
+<footer>
+  <p>A small framework, written to stay small.</p>
+  <p><a href="index.html">Docs</a> · <a href="https://github.com/uoxone/jango">Source</a></p>
+</footer>
+</div>
+</body>
+</html>

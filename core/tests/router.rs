@@ -1,3 +1,5 @@
+//! Tests for exact paths, `<id>` captures, and routes that must be refused.
+
 use super::*;
 use crate::http::Method;
 

@@ -1,3 +1,5 @@
+//! Tests for response headers and a real server on `127.0.0.1`.
+
 use super::*;
 use crate::routes;
 use std::io::{Read, Write};
@@ -78,6 +80,91 @@ fn serves_keep_alive_routes_and_bodies() {
 }
 
 #[test]
+fn static_range_header() {
+    let mut res = Response::status(206, "");
+    res.content_type = "video/mp4";
+    res.body.clear();
+    res.accept_ranges = true;
+    res.content_range = Some("bytes 2-5/10".into());
+    res.file = Some(crate::http::FileBody {
+        path: std::path::PathBuf::from("clip.mp4"),
+        start: 2,
+        len: 4,
+        opened: None,
+    });
+    let mut buf = vec![0u8; response_header_len(&res, res.output_len())];
+    let n = write_header(&mut buf, &res, res.output_len(), false).unwrap();
+    assert_eq!(
+        std::str::from_utf8(&buf[..n]).unwrap(),
+        "HTTP/1.1 206 Partial Content\r\nContent-Type: video/mp4\r\nContent-Length: 4\r\nAccept-Ranges: bytes\r\nContent-Range: bytes 2-5/10\r\nConnection: close\r\nServer: ongo\r\n\r\n"
+    );
+}
+
+#[test]
+fn serves_a_static_file_over_http() {
+    let dir = std::env::temp_dir().join(format!("ongo-http-static-{}", process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(dir.join("site.css"), b"body{color:red}").unwrap();
+    std::fs::write(dir.join("clip.mp4"), b"0123456789").unwrap();
+    let port = 50000 + (process::id() % 8000) as u16;
+    let addr = format!("127.0.0.1:{port}");
+    let listen = addr.clone();
+    let root = dir.clone();
+    thread::spawn(move || {
+        let router = routes! { "/" => home }.staticfiles("/static/", root);
+        run(&listen, router).expect("server");
+    });
+
+    let mut css = connect(&addr);
+    css.write_all(
+        b"GET /static/site.css?v=1 HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n",
+    )
+    .unwrap();
+    let (headers, body) = css.read_until_close();
+    assert!(headers.contains("HTTP/1.1 200 "), "{headers}");
+    assert!(
+        headers.contains("Content-Type: text/css; charset=utf-8"),
+        "{headers}"
+    );
+    assert!(headers.contains("Accept-Ranges: bytes"), "{headers}");
+    assert!(headers.contains("Content-Length: 15"), "{headers}");
+    assert_eq!(body, b"body{color:red}");
+
+    let mut clip = connect(&addr);
+    clip.write_all(
+        b"GET /static/clip.mp4 HTTP/1.1\r\nHost: localhost\r\nRange: bytes=2-5\r\nConnection: close\r\n\r\n",
+    )
+    .unwrap();
+    let (headers, body) = clip.read_until_close();
+    assert!(headers.contains("HTTP/1.1 206 "), "{headers}");
+    assert!(headers.contains("Content-Type: video/mp4"), "{headers}");
+    assert!(headers.contains("Content-Range: bytes 2-5/10"), "{headers}");
+    assert_eq!(body, b"2345");
+
+    let mut head = connect(&addr);
+    head.write_all(
+        b"HEAD /static/clip.mp4 HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n",
+    )
+    .unwrap();
+    let (headers, body) = head.read_until_close();
+    assert!(headers.contains("Content-Length: 10"), "{headers}");
+    assert!(body.is_empty(), "{body:?}");
+
+    let mut page = connect(&addr);
+    page.write_all(b"GET / HTTP/1.0\r\n\r\n").unwrap();
+    assert_eq!(page.read_response().1, b"<p>/</p>");
+
+    let mut missing = connect(&addr);
+    missing
+        .write_all(b"GET /static/nope.css HTTP/1.0\r\n\r\n")
+        .unwrap();
+    assert_eq!(missing.read_response().0, 404);
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
 fn resolves_ipv4_only() {
     let addr = resolve("127.0.0.1:8000").unwrap();
     assert_eq!(addr.ip().octets(), [127, 0, 0, 1]);
@@ -92,7 +179,7 @@ fn resolves_ipv4_only() {
 fn writes_status_length_and_location() {
     let text = Response::text("hi");
     let mut buf = [0u8; 256];
-    let n = write_header(&mut buf, &text, text.body.len(), true).unwrap();
+    let n = write_header(&mut buf, &text, text.body.len() as u64, true).unwrap();
     assert_eq!(
         std::str::from_utf8(&buf[..n]).unwrap(),
         "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 2\r\nConnection: keep-alive\r\nServer: ongo\r\n\r\n"
@@ -121,13 +208,13 @@ fn content_length_width() {
     assert_eq!(digits(9), 1);
     assert_eq!(digits(10), 2);
     assert_eq!(digits(999), 3);
-    assert_eq!(digits(usize::MAX), 20);
+    assert_eq!(digits(u64::MAX), 20);
 
     let res = Response::status(404, "");
-    let mut buf = vec![0u8; response_header_len(&res, usize::MAX)];
-    let n = write_header(&mut buf, &res, usize::MAX, true).unwrap();
+    let mut buf = vec![0u8; response_header_len(&res, u64::MAX)];
+    let n = write_header(&mut buf, &res, u64::MAX, true).unwrap();
     let header = std::str::from_utf8(&buf[..n]).unwrap();
-    assert!(header.contains(&format!("Content-Length: {}\r\n", usize::MAX)));
+    assert!(header.contains(&format!("Content-Length: {}\r\n", u64::MAX)));
     assert!(header.contains("404 Not Found"));
 }
 
