@@ -91,7 +91,7 @@ fn create_writes_urls_and_depends_only_on_ongo() {
     assert!(home.contains("<h1>nava</h1>"));
     assert!(!home.contains("__NAME__"));
     assert!(about.contains("{{ request.path }}"));
-    assert!(about.contains("About · nava · Ongo"));
+    assert!(about.contains("About · nava · OnGo"));
     assert!(settings.contains("127.0.0.1:8000"));
     assert!(fs::read_to_string(root.join("nava/.gitignore"))
         .unwrap()
