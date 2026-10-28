@@ -4,6 +4,8 @@
 
 {% block content %}
 <h1>About</h1>
-<p class="lead">You are on <code>{{ request.path }}</code>.</p>
-<p class="back"><a href="/">← Home</a></p>
+<p class="where">You are on <code>{{ request.path }}</code>.</p>
+<nav class="go" aria-label="Elsewhere">
+  <a href="/">Home</a>
+</nav>
 {% endblock %}

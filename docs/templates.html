@@ -60,6 +60,18 @@ pub fn about(req: &amp;Request) -&gt; Response {
   <p>A child replaces blocks by name. The deepest child wins. Words in the child that sit outside a block are left out, so the shell stays in charge of the page. <code>{% endblock %}</code> may repeat the block name, or leave it out.</p>
   <p><code>build.rs</code> reads <code>templates/*.html</code> and embeds them. After a change, the next <code>ongo run</code> picks the new files up. The server you ship already contains the pages.</p>
 
+  <h2>A piece from another file</h2>
+  <p><code>{% include "nav.html" %}</code> renders that file and places the HTML here. The included file sees the same values, including <code>{{ name }}</code> and <code>{{ request.path }}</code>. Single quotes work too: <code>{% include 'nav.html' %}</code>.</p>
+  <p><code>nav.html</code> is the small piece. The page pulls it in.</p>
+  <pre><code>&lt;a href="/"&gt;{{ name }}&lt;/a&gt;</code></pre>
+  <pre><code>{% extends "page.html" %}
+
+{% block content %}
+{% include "nav.html" %}
+&lt;h1&gt;{{ name }}&lt;/h1&gt;
+{% endblock %}</code></pre>
+  <p>The included file is its own page. It may <code>{% extends %}</code> a shell. A block inside it stays inside it, and does not fill a block in the page that included it. If a child replaces a block, an include inside the old block is left out.</p>
+
   <h2>A file in static/</h2>
   <p><code>{% static "css/style.css" %}</code> prints the public path. With <code>STATIC_URL</code> set to <code>/static/</code>, the tag becomes <code>/static/css/style.css</code>. The bytes stay in the <code>static/</code> folder. <a href="static.html">Static</a> is where that folder is served.</p>
 
@@ -69,7 +81,9 @@ pub fn about(req: &amp;Request) -&gt; Response {
     <tr><th>Situation</th><th>What you see</th></tr>
     <tr><td>The file is missing</td><td><code>was not found</code></td></tr>
     <tr><td>A template extends itself, even through a loop</td><td><code>extends itself</code></td></tr>
-    <tr><td>The chain is deeper than 16</td><td><code>too deep</code></td></tr>
+    <tr><td>The extends chain is deeper than 16</td><td><code>extends too deep</code></td></tr>
+    <tr><td>A template includes itself, even through another file</td><td><code>includes itself</code></td></tr>
+    <tr><td>The include chain is deeper than 16</td><td><code>include too deep</code></td></tr>
     <tr><td>An unknown tag, such as <code>{% if %}</code></td><td><code>unknown tag</code></td></tr>
     <tr><td><code>{% extends %}</code> is not the first tag</td><td><code>first tag</code></td></tr>
     <tr><td>A tag or a block is left open</td><td><code>unclosed</code></td></tr>
@@ -80,6 +94,7 @@ pub fn about(req: &amp;Request) -&gt; Response {
 </main>
 <footer>
   <p>A small framework, written to stay small.</p>
+  <p>Whenever you have a question, ask in the <a href="https://t.me/ongo_framework">official group</a>.</p>
   <p><a href="index.html">Docs</a> · <a href="https://github.com/uoxone/jango">Source</a></p>
 </footer>
 </div>

@@ -202,6 +202,19 @@ p { margin: 0.8rem 0; }
   font-size: 0.95rem;
 }
 
+.faq { margin-top: 2.6rem; }
+
+.faq h2 { margin-top: 0; }
+
+.faq dt {
+  margin-top: 1.15rem;
+  font-family: "Iowan Old Style", Palatino, "Palatino Linotype", "Liberation Serif", Georgia, serif;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+
+.faq dd { margin: 0.2rem 0 0; }
+
 .note {
   margin-top: 2rem;
   padding: 1rem 1.1rem;

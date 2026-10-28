@@ -1,8 +1,9 @@
 //! Django-style templates.
 //!
 //! `{{ name }}` is escaped. `{% extends %}` and `{% block %}`
-//! share one page shell. `{% static %}` points at a file
-//! in `static/`. The HTML lives in `templates/`.
+//! share one page shell. `{% include %}` renders another file
+//! into the page. `{% static %}` points at a file in `static/`.
+//! The HTML lives in `templates/`.
 
 #![forbid(unsafe_code)]
 
@@ -28,7 +29,8 @@ pub fn render(req: &Request, name: &str, context: &[(&str, &str)]) -> Response {
 ///
 /// `{{ name }}` and `{{ request.path }}` are HTML-escaped.
 /// `{% extends "page.html" %}` and `{% block content %}` work
-/// the same way as in Django. `{% static "css/style.css" %}`
+/// the same way as in Django. `{% include "nav.html" %}` renders
+/// that file with the same values. `{% static "css/style.css" %}`
 /// prints the public path of a file in the static folder.
 #[macro_export]
 macro_rules! render {
@@ -43,7 +45,7 @@ macro_rules! render {
 // -----------------------------------------------
 // Nodes
 // One walk of the file. Text is copied through.
-// Variables and blocks are the only structure.
+// Variables, blocks, and includes are the structure.
 // -----------------------------------------------
 
 struct Parsed<'a> {
@@ -56,6 +58,7 @@ enum Node<'a> {
     Var(&'a str),
     Block(&'a str, Vec<Node<'a>>),
     Static(&'a str),
+    Include(&'a str),
 }
 
 struct Cur<'a> {
@@ -154,6 +157,7 @@ fn parse_nodes<'a>(cur: &mut Cur<'a>, stop: Option<&str>) -> Result<Vec<Node<'a>
                     nodes.push(Node::Block(name, body));
                 }
                 Tag::Static(name) => nodes.push(Node::Static(name)),
+                Tag::Include(name) => nodes.push(Node::Include(name)),
                 Tag::Extends(_) => return Err("extends must be the first tag".into()),
             }
             continue;
@@ -196,9 +200,10 @@ enum Tag<'a> {
     Block(&'a str),
     EndBlock(Option<&'a str>),
     Static(&'a str),
+    Include(&'a str),
 }
 
-/// One tag: `extends`, `block`, `endblock`, or `static`.
+/// One tag: `extends`, `block`, `endblock`, `static`, or `include`.
 fn parse_tag(body: &str) -> Result<Tag<'_>, String> {
     let body = body.trim();
     let (word, rest) = split_word(body);
@@ -227,8 +232,43 @@ fn parse_tag(body: &str) -> Result<Tag<'_>, String> {
             }
             Ok(Tag::Static(name))
         }
+        "include" => Ok(Tag::Include(include_name(rest)?)),
         other => Err(format!("unknown tag `{other}`")),
     }
+}
+
+/// `{% include "nav.html" %}`. The name is quoted, and nothing follows it.
+fn include_name(text: &str) -> Result<&str, String> {
+    let (name, rest) = one_quoted(text)?;
+    if !rest.is_empty() {
+        return Err("invalid include".into());
+    }
+    Ok(name)
+}
+
+/// A quoted string, then whatever text follows the closing quote.
+fn one_quoted(text: &str) -> Result<(&str, &str), String> {
+    let bytes = text.as_bytes();
+    if bytes.len() < 2 {
+        return Err("template name must be quoted".into());
+    }
+    let quote = bytes[0];
+    if quote != b'"' && quote != b'\'' {
+        return Err("template name must be quoted".into());
+    }
+    let body = &text[1..];
+    let Some(end) = body.bytes().position(|byte| byte == quote) else {
+        return Err("template name must be quoted".into());
+    };
+    let name = &body[..end];
+    if name.is_empty()
+        || name
+            .bytes()
+            .any(|byte| byte == b'\\' || byte == b'\n' || byte == b'\r')
+    {
+        return Err("invalid template name".into());
+    }
+    Ok((name, body[end + 1..].trim_start()))
 }
 
 /// A variable such as `name` or `request.path`.
@@ -304,7 +344,7 @@ fn quoted(text: &str) -> Result<&str, String> {
 // -----------------------------------------------
 // Inheritance
 // The child replaces blocks in the parent.
-// The deepest child wins. A cycle is an error.
+// {% include %} renders another file and pastes the HTML.
 // -----------------------------------------------
 
 /// Load the extends chain, apply the child's blocks, and return HTML.
@@ -313,6 +353,38 @@ fn draw(
     load: fn(&str) -> Option<&'static str>,
     req: &Request,
     context: &[(&str, &str)],
+) -> Result<String, String> {
+    let mut stack = Vec::new();
+    draw_at(name, load, req, context, &mut stack)
+}
+
+/// Render one template. A nested `{% include %}` calls this again.
+fn draw_at<'a>(
+    name: &'a str,
+    load: fn(&str) -> Option<&'static str>,
+    req: &Request<'_>,
+    context: &[(&str, &str)],
+    stack: &mut Vec<&'a str>,
+) -> Result<String, String> {
+    if stack.iter().any(|seen| *seen == name) {
+        return Err(format!("template `{name}` includes itself"));
+    }
+    if stack.len() == 16 {
+        return Err("template include too deep".into());
+    }
+    stack.push(name);
+    let html = draw_chain(name, load, req, context, stack);
+    stack.pop();
+    html
+}
+
+/// Walk `{% extends %}`, then write the base template.
+fn draw_chain<'a>(
+    name: &'a str,
+    load: fn(&str) -> Option<&'static str>,
+    req: &Request<'_>,
+    context: &[(&str, &str)],
+    stack: &mut Vec<&'a str>,
 ) -> Result<String, String> {
     let mut names = Vec::new();
     let mut chain = Vec::new();
@@ -364,10 +436,12 @@ fn draw(
         &mut out,
         &chain[base].nodes,
         &chosen,
+        load,
         req,
         context,
         static_url,
-    );
+        stack,
+    )?;
     Ok(out)
 }
 
@@ -376,19 +450,21 @@ fn uses_static(nodes: &[Node<'_>]) -> bool {
     nodes.iter().any(|node| match node {
         Node::Static(_) => true,
         Node::Block(_, body) => uses_static(body),
-        Node::Text(_) | Node::Var(_) => false,
+        Node::Text(_) | Node::Var(_) | Node::Include(_) => false,
     })
 }
 
 /// Write HTML. A child block replaces the parent block of the same name.
-fn write(
+fn write<'a>(
     out: &mut String,
-    nodes: &[Node<'_>],
-    blocks: &[(&str, &[Node<'_>])],
-    req: &Request,
+    nodes: &[Node<'a>],
+    blocks: &[(&str, &[Node<'a>])],
+    load: fn(&str) -> Option<&'static str>,
+    req: &Request<'_>,
     context: &[(&str, &str)],
     static_url: &str,
-) {
+    stack: &mut Vec<&'a str>,
+) -> Result<(), String> {
     for node in nodes {
         match node {
             Node::Text(text) => out.push_str(text),
@@ -397,16 +473,21 @@ fn write(
                 push_escaped(out, static_url);
                 push_escaped(out, name);
             }
+            Node::Include(name) => {
+                let html = draw_at(name, load, req, context, stack)?;
+                out.push_str(&html);
+            }
             Node::Block(name, body) => {
                 let inner = blocks
                     .iter()
                     .find(|(found, _)| found == name)
                     .map(|(_, body)| *body)
                     .unwrap_or(body);
-                write(out, inner, &[], req, context, static_url);
+                write(out, inner, &[], load, req, context, static_url, stack)?;
             }
         }
     }
+    Ok(())
 }
 
 /// A context value, or `request.path` and `request.method`. A missing name is empty.

@@ -1,4 +1,4 @@
-//! Tests for `{{ }}`, blocks, `extends`, `static`, and the sample pages.
+//! Tests for `{{ }}`, blocks, `extends`, `include`, `static`, and the sample pages.
 
 use super::*;
 use crate::http::Method;
@@ -48,6 +48,31 @@ fn load(name: &str) -> Option<&'static str> {
         "badblock.html" => "{% block 1 %}",
         "novar.html" => "{{ }}",
         "opencom.html" => "{# hi",
+        "nav.html" => "<a>{{ name }}</a>",
+        "pageinc.html" => "Hi {% include \"nav.html\" %}!",
+        "reqinc.html" => "{% include 'where.html' %}",
+        "where.html" => "{{ request.method }} {{ request.path }}",
+        "spaceinc.html" => "{%  include   \"nav.html\"  %}",
+        "nest.html" => "[{% include \"pageinc.html\" %}]",
+        "twice.html" => "{% include \"nav.html\" %}{% include \"nav.html\" %}",
+        "shellinc.html" => "[{% block a %}A{% endblock %}]{% include \"nav.html\" %}",
+        "bitblock.html" => "{% block a %}B{% endblock %}",
+        "useinc.html" => {
+            "{% extends \"shellinc.html\" %}{% block a %}{% include \"bitblock.html\" %}{% endblock %}"
+        }
+        "holder.html" => {
+            "{% block a %}{% include \"missing-bit.html\" %}{% endblock %}{% block b %}B{% endblock %}"
+        }
+        "dropinc.html" => "{% extends \"holder.html\" %}{% block a %}Z{% endblock %}",
+        "wrap.html" => "{% include \"home.html\" %}",
+        "inccss.html" => "X{% include \"asset.html\" %}Y",
+        "selfinc.html" => "{% include \"selfinc.html\" %}",
+        "inca.html" => "{% include \"incb.html\" %}",
+        "incb.html" => "{% include \"inca.html\" %}",
+        "badinc.html" => "{% include nav.html %}",
+        "emptyinc.html" => "{% include \"\" %}",
+        "junkinc.html" => "{% include \"nav.html\" extra %}",
+        "missinc.html" => "{% include \"no-such.html\" %}",
         _ => return None,
     })
 }
@@ -160,6 +185,103 @@ fn template_errors() {
 }
 
 #[test]
+fn include_pastes_the_other_template() {
+    let req = sample("/song");
+    let named = &[("name", "<b>")];
+    assert_eq!(
+        body(&render(&req, "pageinc.html", named)),
+        "Hi <a>&lt;b&gt;</a>!"
+    );
+    assert_eq!(body(&render(&req, "reqinc.html", &[])), "GET /song");
+    assert_eq!(
+        body(&render(&req, "spaceinc.html", named)),
+        "<a>&lt;b&gt;</a>"
+    );
+    assert_eq!(
+        body(&render(&req, "nest.html", named)),
+        "[Hi <a>&lt;b&gt;</a>!]"
+    );
+    assert_eq!(
+        body(&render(&req, "twice.html", named)),
+        "<a>&lt;b&gt;</a><a>&lt;b&gt;</a>"
+    );
+    assert_eq!(
+        body(&render(&req, "useinc.html", named)),
+        "[B]<a>&lt;b&gt;</a>"
+    );
+    assert_eq!(body(&render(&req, "dropinc.html", &[])), "ZB");
+
+    let home = body(&render(&req, "wrap.html", named));
+    assert!(home.contains("a { color: red }"));
+    assert!(home.contains("<title>Home</title>"));
+    assert!(home.contains("<h1>&lt;b&gt;</h1>"));
+    assert!(!home.contains("{% include"));
+
+    let mut styled = sample("/");
+    styled.static_url = Some("/static/");
+    assert_eq!(
+        body(&render(&styled, "inccss.html", &[])),
+        "X<link href=\"/static/css/site.css\">Y"
+    );
+}
+
+#[test]
+fn include_rejects_a_loop_and_a_bad_name() {
+    let req = sample("/");
+    let empty: &[(&str, &str)] = &[];
+    for (name, needle) in [
+        ("missinc.html", "was not found"),
+        ("selfinc.html", "includes itself"),
+        ("inca.html", "includes itself"),
+        ("badinc.html", "must be quoted"),
+        ("emptyinc.html", "invalid template name"),
+        ("junkinc.html", "invalid include"),
+    ] {
+        let res = render(&req, name, empty);
+        assert_eq!(res.status, 500, "{name}");
+        assert!(body(&res).contains(needle), "{name}: {}", body(&res));
+    }
+
+    let plain = render(&req, "plain.html", &[("name", "Ada")]);
+    assert_eq!(plain.status, 200);
+    assert_eq!(body(&plain), "Hello Ada");
+}
+
+#[test]
+fn include_depth_is_capped() {
+    const CHAIN: [&str; 17] = [
+        "ok",
+        "{% include \"0\" %}",
+        "{% include \"1\" %}",
+        "{% include \"2\" %}",
+        "{% include \"3\" %}",
+        "{% include \"4\" %}",
+        "{% include \"5\" %}",
+        "{% include \"6\" %}",
+        "{% include \"7\" %}",
+        "{% include \"8\" %}",
+        "{% include \"9\" %}",
+        "{% include \"10\" %}",
+        "{% include \"11\" %}",
+        "{% include \"12\" %}",
+        "{% include \"13\" %}",
+        "{% include \"14\" %}",
+        "{% include \"15\" %}",
+    ];
+    fn deep(name: &str) -> Option<&'static str> {
+        let n: usize = name.parse().ok()?;
+        CHAIN.get(n).copied()
+    }
+
+    let mut req = sample("/");
+    req.templates = Some(deep);
+    assert_eq!(body(&render(&req, "15", &[])), "ok");
+    let res = render(&req, "16", &[]);
+    assert_eq!(res.status, 500);
+    assert!(body(&res).contains("include too deep"));
+}
+
+#[test]
 fn extend_depth_is_capped() {
     const CHAIN: [&str; 17] = [
         "ok",
@@ -215,14 +337,17 @@ fn project_templates_render() {
     assert!(page.contains("<h1>__NAME__</h1>"));
     assert!(page.contains("127.0.0.1:8000"));
     assert!(page.contains("href=\"/static/css/style.css\""));
+    assert!(page.contains("https://uoxone.github.io/ongo/"));
     assert!(!page.contains("<style>"));
     assert!(!page.contains("{{ addr }}"));
     assert!(!page.contains("{% block"));
     assert!(!page.contains("{% static"));
+    assert!(!page.contains("class=\"routes\""));
     assert!(include_str!("../templates/style.css.in").contains("--paper: #f6f1e8;"));
 
     let about = body(&render(&req, "about.html", &[]));
     assert!(about.contains("<title>About · __NAME__ · OnGo</title>"));
     assert!(about.contains("<code>/about</code>"));
-    assert!(about.contains("← Home"));
+    assert!(about.contains(">Home</a>"));
+    assert!(!about.contains("https://uoxone.github.io/ongo/"));
 }

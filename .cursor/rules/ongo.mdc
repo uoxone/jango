@@ -67,3 +67,21 @@ mod tests;
 
 - Do not add a database, admin, template engine, middleware, chunked bodies, or IPv6 unless the user asks.
 - Keep command output short.
+
+## SEO
+
+The docs home page must stay findable for "Django written in Rust". A new feature or a docs edit must not weaken that page.
+
+- Public docs are `https://uoxone.github.io/ongo/`. `docs/index.html` is the page Google should rank.
+- Keep the title `Django written in Rust — OnGo web framework`.
+- Keep the description, the canonical URL `https://uoxone.github.io/ongo/`, and the Open Graph and Twitter tags.
+- Keep the visible line that OnGo is a Django-style web framework written in the Rust programming language.
+- Keep the heading "Is there a Django written in Rust?" and its yes answer, including `cargo install ongo`. The FAQ text and the JSON-LD `FAQPage` must say the same thing.
+- Keep the JSON-LD `WebSite` and `SoftwareApplication` blocks. When the `Cargo.toml` version changes, update `softwareVersion`.
+- Keep `docs/robots.txt`. A new public docs page goes in `docs/sitemap.xml` with its real URL.
+- Do not hide keywords, and do not stuff the same phrase into every heading. Say it once, clearly, where it already is.
+- The official group link `https://t.me/ongo_framework` stays in every docs footer.
+
+When a feature is added to an existing docs page, keep that page's title, description, canonical URL, FAQ, and group link. Write the new text beside them. If the FAQ sentence changes, change the JSON-LD `FAQPage` to the same sentence.
+
+When a new public docs page is added, leave the home page SEO in place. Give the new page its own title, such as `Views · OnGo`. Put its real URL in `docs/sitemap.xml`, link it from `docs/index.html`, and keep `https://t.me/ongo_framework` in its footer.

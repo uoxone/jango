@@ -5,9 +5,96 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
-<title>OnGo</title>
-<meta name="description" content="OnGo is a small Django-style web framework for Rust. A view is a function. A path is one line.">
+<title>Django written in Rust — OnGo web framework</title>
+<meta name="description" content="OnGo is a Django-style web framework written in the Rust programming language. A view is a function, a path is one line, and one file is the whole server.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="OnGo">
+<link rel="canonical" href="https://uoxone.github.io/ongo/">
+<link rel="alternate" hreflang="en" href="https://uoxone.github.io/ongo/">
+<link rel="alternate" hreflang="x-default" href="https://uoxone.github.io/ongo/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OnGo">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://uoxone.github.io/ongo/">
+<meta property="og:title" content="Django written in Rust — OnGo web framework">
+<meta property="og:description" content="OnGo is a Django-style web framework written in the Rust programming language. A view is a function, a path is one line, and one file is the whole server.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Django written in Rust — OnGo web framework">
+<meta name="twitter:description" content="OnGo is a Django-style web framework written in the Rust programming language. A view is a function, a path is one line, and one file is the whole server.">
 <link rel="stylesheet" href="style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://uoxone.github.io/ongo/#website",
+      "url": "https://uoxone.github.io/ongo/",
+      "name": "OnGo",
+      "description": "A Django-style web framework written in the Rust programming language.",
+      "inLanguage": "en",
+      "publisher": { "@id": "https://uoxone.github.io/ongo/#app" }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://uoxone.github.io/ongo/#app",
+      "name": "OnGo",
+      "url": "https://uoxone.github.io/ongo/",
+      "applicationCategory": "DeveloperApplication",
+      "applicationSubCategory": "Web framework",
+      "operatingSystem": "Linux, macOS, Windows",
+      "softwareVersion": "0.1.2",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "OnGo is a Django-style web framework written in the Rust programming language. A view is a function, a path is one line, and one file is the whole server.",
+      "programmingLanguage": "Rust",
+      "codeRepository": "https://github.com/uoxone/ongo",
+      "downloadUrl": "https://github.com/uoxone/ongo",
+      "installUrl": "https://uoxone.github.io/ongo/start.html",
+      "sameAs": [
+        "https://github.com/uoxone/ongo",
+        "https://t.me/ongo_framework"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://uoxone.github.io/ongo/#faq",
+      "url": "https://uoxone.github.io/ongo/",
+      "inLanguage": "en",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is there a Django written in Rust?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. OnGo is a Django-style web framework written in the Rust programming language. A view is a function, a path is one line, and one file is the whole server. Install it with cargo install ongo."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is OnGo the Django project itself?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "OnGo is its own framework. The ideas match Django: projects, URLs, views, templates, and static files. The language is Rust, and the result is one executable."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I install OnGo?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Run cargo install ongo, then ongo create project nava and ongo run nava. The server listens at http://127.0.0.1:8000."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <a class="skip" href="#content">Skip to content</a>
@@ -25,9 +112,9 @@
   </nav>
 </header>
 <main id="content" class="home">
-  <p class="kicker">Web framework</p>
+  <p class="kicker">Django, written in Rust</p>
   <h1>OnGo</h1>
-  <p class="lede">Inspired by Django. Written in Rust. You keep a short list of paths, each path calls a function, and the HTML lives in a template.</p>
+  <p class="lede">A Django-style web framework, written in the Rust programming language. You keep a short list of paths, each path calls a function, and the HTML lives in a template.</p>
   <p>When the pages feel right, one file is the whole server. The standard library is the only dependency.</p>
 
   <ol class="chapters">
@@ -96,6 +183,17 @@
     </li>
   </ol>
 
+  <section class="faq" aria-labelledby="django-rust">
+    <h2 id="django-rust">Is there a Django written in Rust?</h2>
+    <p>Yes. OnGo is that shape: projects, URLs, views, templates, and static files, written in Rust. Install it with <code>cargo install ongo</code>, then follow the <a href="start.html">start guide</a>.</p>
+    <dl>
+      <dt>Is OnGo the Django project itself?</dt>
+      <dd>OnGo is its own framework. The ideas match Django. The language is Rust, and the result is one executable.</dd>
+      <dt>How do I install it?</dt>
+      <dd><code>cargo install ongo</code>, then <code>ongo create project nava</code> and <code>ongo run nava</code>. The server is at <a href="http://127.0.0.1:8000">http://127.0.0.1:8000</a>.</dd>
+    </dl>
+  </section>
+
   <div class="note">
     <p>Stage 1 is projects, URLs, views, templates, static files, and the HTTP server.</p>
     <p>A database, admin, middleware, chunked bodies, and IPv6 are waiting for a later stage.</p>
@@ -103,6 +201,7 @@
 </main>
 <footer>
   <p>A small framework, written to stay small.</p>
+  <p>Whenever you have a question, ask in the <a href="https://t.me/ongo_framework">official group</a>.</p>
   <p><a href="https://github.com/uoxone/jango">Source</a></p>
 </footer>
 </div>
